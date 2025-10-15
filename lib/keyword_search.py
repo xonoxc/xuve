@@ -4,6 +4,8 @@ from typing import List
 from config.data import DATA_PATH, DEFAULT_SEARCH_LIMIT, STOPWORDS_PATH
 from decors.handle_file_errors import handle_file_errors
 from itertools import islice
+from nltk.stem import PorterStemmer
+
 
 from typedicts.movies import Movie
 
@@ -54,7 +56,18 @@ def tokenize(arg_str: str) -> list[str]:
     cleaned = get_cleaned_string(
         arg_str,
     )
-    return [token for token in cleaned.split() if token and token not in STOPWORDS]
+    return stem_words(
+        [token for token in cleaned.split() if token and token not in STOPWORDS],
+    )
+
+
+# this function stems words to their root form
+# ex -> running => run
+stemmer = PorterStemmer()  # stemmer class instance from nltk
+
+
+def stem_words(word_list: List[str]) -> List[str]:
+    return [stemmer.stem(word) for word in word_list if word]
 
 
 # this function removes all
