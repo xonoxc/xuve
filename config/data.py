@@ -15,3 +15,7 @@ STOPWORDS_PATH = os.path.join(PROJECT_ROOT, "data", "stopwords.txt")
 
 # Define the path to the data file
 DATA_PATH = os.path.join(PROJECT_ROOT, "data", "movies.json")
+
+
+# index cache path
+INDEX_CACHE_PATH = os.path.join(PROJECT_ROOT, "cache", "index.json")

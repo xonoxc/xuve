@@ -1,89 +1,50 @@
-import json
-import string
-from typing import List
-from config.data import DATA_PATH, DEFAULT_SEARCH_LIMIT, STOPWORDS_PATH
-from decors.handle_file_errors import handle_file_errors
+import os
 from itertools import islice
-from nltk.stem import PorterStemmer
+from typing import List, Set
 
-
+from config.data import DEFAULT_SEARCH_LIMIT
+from lib.indexes.inverted_index import InvertedIndex
 from typedicts.movies import Movie
 
-
-@handle_file_errors
-def load_data() -> List[Movie]:
-    with open(DATA_PATH, "r") as f:
-        data = json.load(f)
-    return data["movies"]
+from .tokenize import tokenize
 
 
-@handle_file_errors
-def load_stop_words() -> List[str]:
-    with open(STOPWORDS_PATH, "r") as f:
-        stop_words = f.read().splitlines()
-    return stop_words
+CURRENT_INVERTED_INDEX = InvertedIndex()
 
 
+# seach command func
 def search(
     query: str,
     limit: int = DEFAULT_SEARCH_LIMIT,
 ) -> List[Movie]:
-    movies = load_data()
-    query_tokens = set(tokenize(query))  # set for faster q in t checks
+    global index
 
-    # checks if any of the query tokens
-    def matches(movie: Movie) -> bool:
-        title_tokens = tokenize(movie["title"])
-        return any(q in t for q in query_tokens for t in title_tokens)
+    populate_index()
 
-    # creating a slice from the generator
-    # with the given limit
+    tokenized_query = tokenize(query)
+
+    result_set: Set[Movie] = set()  # no duplicates
+
+    for token in tokenized_query:
+        matching_docs = CURRENT_INVERTED_INDEX.get_documents(token)
+        result_set.update(matching_docs)
+
     return list(
-        islice(
-            (movie for movie in movies if matches(movie)),
-            limit,
-        )
+        islice(result_set, limit),
     )
 
 
-# loading the stopd words in memory for once
-# yeah this could have been an array for set gives O(1) time complextiy for checks
-STOPWORDS = set(load_stop_words())
+# populate index func
+# only runs if index not loaded
+# if not build , use :- python -m cli.build  to build and cache the index
+def populate_index() -> None:
+    if CURRENT_INVERTED_INDEX.is_loaded:
+        return
 
+    if not CURRENT_INVERTED_INDEX.is_built:
+        print("Index not built. Please build the index first. using build command.")
+        os._exit(1)
 
-# tokenizes the passed string
-def tokenize(arg_str: str) -> list[str]:
-    cleaned = get_cleaned_string(
-        arg_str,
-    )
-    return stem_words(
-        [token for token in cleaned.split() if token and token not in STOPWORDS],
-    )
-
-
-# this function stems words to their root form
-# ex -> running => run
-stemmer = PorterStemmer()  # stemmer class instance from nltk
-
-
-def stem_words(word_list: List[str]) -> List[str]:
-    return [stemmer.stem(word) for word in word_list if word]
-
-
-# this function removes all
-# the puncutaiton marks from query string
-# and makes then lower case for comparison
-
-# caching the translation table so that it does not get created
-# everytime [IMPORTANT]: specically because this function is
-# used in loops
-PUNCTUATION_TRANSLATION_TABLE = str.maketrans("", "", string.punctuation)
-
-
-def get_cleaned_string(raw_string: str) -> str:
-    cleaned = raw_string.translate(
-        PUNCTUATION_TRANSLATION_TABLE,
-    ).lower()
-
-    # whitespace normalization
-    return " ".join(cleaned.split())
+    print("Loading index from cache...")
+    CURRENT_INVERTED_INDEX.load()
+    print("Index loaded from cache.")
