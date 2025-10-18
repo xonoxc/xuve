@@ -1,5 +1,5 @@
 [project]
-name = "coola"
+name = "xuve"
 version = "0.1.0"
 description = "RAG system for searching and retrieving information from movies data"
 readme = "README.md"
