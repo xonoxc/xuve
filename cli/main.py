@@ -11,6 +11,10 @@ def main() -> None:
             print("Searching For:", args.query, "....")
             result = search(args.query)
 
+            if len(result) == 0:
+                print("No results found.")
+                return
+
             for i, res in enumerate(result, start=1):
                 print(f"{i}. {res['title']}")
 
