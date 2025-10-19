@@ -1,32 +1,73 @@
 import os
-from typing import Dict, List, Optional, Set
 
-from config.data import INDEX_CACHE_PATH
+import json
+from typing import Counter, Dict, List, Optional, Set, Tuple, Any
+
+from config.data import (
+    CACHE_DIR_PATH,
+    EXPECTED_CACHE_DIR_FILES,
+    INDEX_CACHE_PATH,
+    TERM_FREQUENCIES_PATH,
+)
 from decors.handle_file_errors import handle_file_errors, raise_error
 from lib.tokenize import tokenize
+from typedicts.files_to_write import CacheFilesToWrite
 from typedicts.movies import Movie
+from lib.enums.cache_status import CacheStatus
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class InvertedIndex:
     def __init__(self) -> None:
+        # index
         self.index: Dict[str, Set[int]] = {}
+        # document map
         self.docmap: Dict[int, Movie] = {}
-        self.is_loaded: bool = False
-        self.is_built: bool = False
+        # term frequencies
+        self.term_frequencies: Dict[int, Counter] = {}
 
-        # if cache file exists, mark as built
-        self.is_built = os.path.isfile(
-            INDEX_CACHE_PATH,
-        )
+        # is cache loaded status
+        self.is_loaded: bool = False
+        # cache status
+        self.cache_status: CacheStatus = CacheStatus.NOT_BUILT
+
+        # check cache integrity
+        self.check_cache_integrity()
+
+    def check_cache_integrity(self) -> None:
+        cache_dir_present = os.path.isdir(CACHE_DIR_PATH)
+        if not cache_dir_present:
+            return
+
+        missing_files = [f for f in EXPECTED_CACHE_DIR_FILES if not os.path.exists(f)]
+        if missing_files:
+            self.cache_status = CacheStatus.CORRUPT
+            return
+
+        self.cache_status = CacheStatus.BUILT
 
     def __add_document(self, doc_id: int, text: str):
         tokenized_text = tokenize(text)
 
         for token in set(tokenized_text):
-            if token not in self.index:
-                self.index[token] = set()
-
+            self.index.setdefault(
+                token,
+                set(),
+            )
             self.index[token].add(doc_id)
+
+        self.term_frequencies.setdefault(doc_id, Counter())
+        self.term_frequencies[doc_id].update(
+            tokenized_text,
+        )
+
+    def get_token_frequencies(self, doc_id: int, text: str) -> int:
+        tokens = tokenize(text)
+        if len(tokens) != 1:
+            raise ValueError(
+                "term must be a single token",
+            )
+        return self.term_frequencies[doc_id][tokens[0]]
 
     def get_doc_ids(self, term: str) -> Set[int]:
         return self.index.get(
@@ -44,6 +85,7 @@ class InvertedIndex:
 
         if limit is None:
             return docs
+
         return docs[:limit]
 
     # Builder
@@ -61,46 +103,69 @@ class InvertedIndex:
 
     # Save method
     @handle_file_errors(custom_handlers=None)
-    def save(self, path: str = INDEX_CACHE_PATH) -> None:
+    def save(self, cache_path: str = CACHE_DIR_PATH) -> None:
         import json
 
         print("Saving index to path...")
 
-        print("creating cache directory...")
-        os.makedirs(
-            os.path.dirname(path),
-            exist_ok=True,
-        )
-        print("cache directory created!!")
+        os.makedirs(cache_path, exist_ok=True)
 
-        print("writing index to path...")
+        files_to_be_written: List[CacheFilesToWrite] = [
+            {
+                "path": INDEX_CACHE_PATH,
+                "data": {
+                    "index": {token: list(ids) for token, ids in self.index.items()},
+                    "docmap": self.docmap,
+                },
+            },
+            {"path": TERM_FREQUENCIES_PATH, "data": self.term_frequencies},
+        ]
 
-        data_to_save = {
-            "index": {token: list(ids) for token, ids in self.index.items()},
-            "docmap": self.docmap,
-        }
+        for file in files_to_be_written:
+            with open(file.get("path"), "w", encoding="utf-8") as f:
+                json.dump(
+                    file.get("data"),
+                    f,
+                    ensure_ascii=False,
+                    indent=2,
+                )
 
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(
-                data_to_save,
-                f,
-                ensure_ascii=False,
-                indent=2,
-            )
-
-        self.is_built = True
+        self.cache_status = CacheStatus.BUILT
         print("Index saved to path...")
+
+    @staticmethod
+    def load_file(file_path: str) -> Tuple[str, Any]:
+        with open(file_path, "r") as f:
+            data = json.load(f)
+
+        return file_path, data
 
     @handle_file_errors({FileNotFoundError: raise_error})
     def load(self) -> None:
-        import json
+        """Load all cache files concurrently."""
+        with ThreadPoolExecutor() as executor:
+            futures = [
+                executor.submit(self.load_file, f) for f in EXPECTED_CACHE_DIR_FILES
+            ]
 
-        with open(INDEX_CACHE_PATH, "r") as f:
-            data = json.load(f)
+            for future in as_completed(futures):
+                file_path, data = future.result()
 
-        self.index = {token: set(ids) for token, ids in data["index"].items()}
-        self.docmap = {int(k): v for k, v in data["docmap"].items()}
+                if os.path.samefile(
+                    file_path,
+                    INDEX_CACHE_PATH,
+                ):
+                    self.index = {
+                        token: set(ids) for token, ids in data["index"].items()
+                    }
+                    self.docmap = {int(k): v for k, v in data["docmap"].items()}
+                elif os.path.samefile(
+                    file_path,
+                    TERM_FREQUENCIES_PATH,
+                ):
+                    self.term_frequencies = {
+                        int(k): Counter(v) for k, v in data.items()
+                    }
 
         self.is_loaded = True
-
-    print("Index loaded successfully!")
+        print("Index loaded successfully!")

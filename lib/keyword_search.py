@@ -1,9 +1,8 @@
-import os
 from itertools import islice
 from typing import List
 
 from config.data import DEFAULT_SEARCH_LIMIT
-from lib.indexes.inverted_index import InvertedIndex
+from lib.indexes.inverted_index import CacheStatus, InvertedIndex
 from typedicts.movies import Movie
 
 from .tokenize import tokenize
@@ -47,10 +46,26 @@ def populate_index() -> None:
     if CURRENT_INVERTED_INDEX.is_loaded:
         return
 
-    if not CURRENT_INVERTED_INDEX.is_built:
-        print("Index not built. Please build the index first. using build command.")
-        os._exit(1)
+    match CURRENT_INVERTED_INDEX.cache_status:
+        case CacheStatus.NOT_BUILT:
+            print(
+                "Index not built. Please build the index first using build command.",
+            )
+            process_dot_exit()
 
-    print("Loading index from cache...")
-    CURRENT_INVERTED_INDEX.load()
-    print("Index loaded from cache.")
+        case CacheStatus.CORRUPT:
+            print(
+                "Cache Corrupted! Please rebuild the cache to proceed.",
+            )
+            process_dot_exit()
+
+        case CacheStatus.BUILT:
+            print("Loading index from cache...")
+            CURRENT_INVERTED_INDEX.load()
+            print("Index loaded from cache.")
+
+
+def process_dot_exit():
+    import sys
+
+    sys.exit(1)

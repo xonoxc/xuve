@@ -18,4 +18,22 @@ DATA_PATH = os.path.join(PROJECT_ROOT, "data", "movies.json")
 
 
 # index cache path
-INDEX_CACHE_PATH = os.path.join(PROJECT_ROOT, "cache", "index.json")
+CACHE_DIR_PATH = os.path.join(PROJECT_ROOT, "cache")
+
+# index for the files to be written in the path for cache
+
+# file containing indexes
+INDEX_CACHE_PATH = os.path.join(CACHE_DIR_PATH, "index.json")
+
+# file containing term frequeincies for ranking
+TERM_FREQUENCIES_PATH = os.path.join(
+    CACHE_DIR_PATH,
+    "term_frequencies.json",
+)
+
+
+# EXPECTED CACHE FILES (if these files are not the cache directory the cache is considered corrupt)
+EXPECTED_CACHE_DIR_FILES = [
+    INDEX_CACHE_PATH,
+    TERM_FREQUENCIES_PATH,
+]
