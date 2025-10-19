@@ -1,21 +1,19 @@
 import os
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 from config.data import INDEX_CACHE_PATH
 from decors.handle_file_errors import handle_file_errors, raise_error
 from lib.tokenize import tokenize
 from typedicts.movies import Movie
 
-from concurrent.futures import ThreadPoolExecutor
-
 
 class InvertedIndex:
-    index: Dict[str, Set[int]] = {}
-    docmap: Dict[int, Movie] = {}
-    is_loaded: bool = False
-    is_built: bool = False
-
     def __init__(self) -> None:
+        self.index: Dict[str, Set[int]] = {}
+        self.docmap: Dict[int, Movie] = {}
+        self.is_loaded: bool = False
+        self.is_built: bool = False
+
         # if cache file exists, mark as built
         self.is_built = os.path.isfile(
             INDEX_CACHE_PATH,
@@ -24,33 +22,44 @@ class InvertedIndex:
     def __add_document(self, doc_id: int, text: str):
         tokenized_text = tokenize(text)
 
-        for token in tokenized_text:
+        for token in set(tokenized_text):
             if token not in self.index:
                 self.index[token] = set()
 
             self.index[token].add(doc_id)
 
-    def get_documents(
-        self,
-        term: str,
-        limit: int = 5,
-    ) -> Set[Movie]:
-        doc_ids = self.index.get(
+    def get_doc_ids(self, term: str) -> Set[int]:
+        return self.index.get(
             term,
             set(),
         )
-        return {self.docmap[doc_id] for doc_id in list(doc_ids)[:limit]}
 
+    def get_documents(
+        self,
+        term: str,
+        limit: Optional[int] = 5,
+    ) -> List[Movie]:
+        doc_ids = self.get_doc_ids(term)
+        docs = [self.docmap[doc_id] for doc_id in list(doc_ids)[:limit]]
+
+        if limit is None:
+            return docs
+        return docs[:limit]
+
+    # Builder
     def build(self, movies: List[Movie]) -> None:
         print("Building index.....")
 
         for movie in movies:
-            movie_id = int(movie["id"])  # ensure consistent type
+            movie_id = int(movie["id"])
             self.docmap[movie_id] = movie
-            self.__add_document(movie_id, f"{movie['title']} {movie['description']}")
+            self.__add_document(
+                movie_id, f"{movie.get('title')} {movie.get('description')}"
+            )
 
         print("Index built.....")
 
+    # Save method
     @handle_file_errors(custom_handlers=None)
     def save(self, path: str = INDEX_CACHE_PATH) -> None:
         import json
@@ -90,7 +99,7 @@ class InvertedIndex:
             data = json.load(f)
 
         self.index = {token: set(ids) for token, ids in data["index"].items()}
-        self.docmap = data["docmap"]
+        self.docmap = {int(k): v for k, v in data["docmap"].items()}
 
         self.is_loaded = True
 

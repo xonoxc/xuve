@@ -1,6 +1,6 @@
 import os
 from itertools import islice
-from typing import List, Set
+from typing import List
 
 from config.data import DEFAULT_SEARCH_LIMIT
 from lib.indexes.inverted_index import InvertedIndex
@@ -12,7 +12,6 @@ from .tokenize import tokenize
 CURRENT_INVERTED_INDEX = InvertedIndex()
 
 
-# seach command func
 def search(
     query: str,
     limit: int = DEFAULT_SEARCH_LIMIT,
@@ -23,14 +22,21 @@ def search(
 
     tokenized_query = tokenize(query)
 
-    result_set: Set[Movie] = set()  # no duplicates
+    if not tokenized_query:
+        return []
+
+    result_list: List[Movie] = []
 
     for token in tokenized_query:
         matching_docs = CURRENT_INVERTED_INDEX.get_documents(token)
-        result_set.update(matching_docs)
+        result_list.extend(matching_docs)
+
+    result_list = list(
+        {movie["id"]: movie for movie in result_list}.values(),
+    )
 
     return list(
-        islice(result_set, limit),
+        islice(result_list, limit),
     )
 
 
