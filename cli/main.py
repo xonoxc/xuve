@@ -1,5 +1,5 @@
 from cli.parser import setup_parser
-from lib.keyword_search import search
+from lib.keyword_search import search, term_freq
 
 
 def main() -> None:
@@ -17,6 +17,17 @@ def main() -> None:
 
             for i, res in enumerate(result, start=1):
                 print(f"{i}. {res['title']}")
+
+        case "tf":
+            print("Finding term frequency for:", args.term, "....")
+            freq = term_freq(
+                int(args.doc_id),
+                args.term,
+            )
+
+            print(
+                f"Term Frequency of '{args.term}' in Document ID {args.doc_id}: {freq}"
+            )
 
         case _:
             parser.print_help()

@@ -16,4 +16,11 @@ def setup_parser() -> argparse.ArgumentParser:
     )
     search_parsers.add_argument("query", type=str, help="Search Query")
 
+    tf_parser = subparsers.add_parser(
+        "tf",
+        help="search term frequency in a document",
+    )
+    tf_parser.add_argument("doc_id", type=str, help="Document ID to search in")
+    tf_parser.add_argument("term", type=str, help="Term to search frequency for")
+
     return parser

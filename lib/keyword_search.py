@@ -39,6 +39,17 @@ def search(
     )
 
 
+def term_freq(doc_id: int, term: str) -> int:
+    populate_index()
+    try:
+        return CURRENT_INVERTED_INDEX.get_token_frequencies(
+            doc_id,
+            text=term,
+        )
+    except ValueError:
+        return 0
+
+
 # populate index func
 # only runs if index not loaded
 # if not build , use :- python -m cli.build  to build and cache the index

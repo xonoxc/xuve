@@ -16,6 +16,8 @@ from typedicts.movies import Movie
 from lib.enums.cache_status import CacheStatus
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+from nltk import defaultdict
+
 
 class InvertedIndex:
     def __init__(self) -> None:
@@ -24,7 +26,7 @@ class InvertedIndex:
         # document map
         self.docmap: Dict[int, Movie] = {}
         # term frequencies
-        self.term_frequencies: Dict[int, Counter] = {}
+        self.term_frequencies: Dict[int, Counter] = defaultdict(Counter)
 
         # is cache loaded status
         self.is_loaded: bool = False
@@ -67,7 +69,10 @@ class InvertedIndex:
             raise ValueError(
                 "term must be a single token",
             )
-        return self.term_frequencies[doc_id][tokens[0]]
+        return self.term_frequencies.get(
+            doc_id,
+            Counter(),
+        ).get(tokens[0], 0)
 
     def get_doc_ids(self, term: str) -> Set[int]:
         return self.index.get(
