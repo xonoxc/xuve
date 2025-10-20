@@ -1,5 +1,5 @@
 from argparse import Namespace, ArgumentParser
-from lib.keyword_search import search, term_freq, inverse_dcoument_freq
+from lib.keyword_search import search, term_freq, inverse_document_freq, tf_idf
 
 
 def act(args: Namespace, parser: ArgumentParser) -> None:
@@ -26,10 +26,23 @@ def act(args: Namespace, parser: ArgumentParser) -> None:
                 f"Term Frequency of '{args.term}' in Document ID {args.doc_id}: {freq}"
             )
 
+        case "tfidf":
+            print("Finding tfidf for:", args.term, "....")
+            tfidf_value = tf_idf(
+                int(args.doc_id),
+                args.term,
+            )
+
+            print(
+                f"TF-IDF score of '{args.term}' in document '{args.doc_id}': {tfidf_value:.2f}"
+            )
+
         case "idf":
             print(f"Calcualting the idf value for term {args.term}....")
 
-            idf = inverse_dcoument_freq(args.term)
+            idf = inverse_document_freq(
+                args.term,
+            )
             print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
 
         case _:

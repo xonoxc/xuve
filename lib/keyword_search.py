@@ -50,7 +50,13 @@ def term_freq(doc_id: int, term: str) -> int:
         return 0
 
 
-def inverse_dcoument_freq(term: str) -> float:
+def tf_idf(doc_id: int, term: str) -> float:
+    return term_freq(doc_id, term) * inverse_document_freq(
+        term,
+    )
+
+
+def inverse_document_freq(term: str) -> float:
     populate_index()
 
     term_doc_count = len(
@@ -70,6 +76,7 @@ def inverse_dcoument_freq(term: str) -> float:
 # if not build , use :- python -m cli.build  to build and cache the index
 def populate_index() -> None:
     if CURRENT_INVERTED_INDEX.is_loaded:
+        print("already loaded returning early...")
         return
 
     match CURRENT_INVERTED_INDEX.cache_status:
