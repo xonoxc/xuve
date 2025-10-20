@@ -23,4 +23,14 @@ def setup_parser() -> argparse.ArgumentParser:
     tf_parser.add_argument("doc_id", type=str, help="Document ID to search in")
     tf_parser.add_argument("term", type=str, help="Term to search frequency for")
 
+    idf_parser = subparsers.add_parser(
+        "idf",
+        help="calcualte the IDF(Inverse Document Frequency) value for the term",
+    )
+    idf_parser.add_argument(
+        "term",
+        type=str,
+        help="Term to calculate IDF(Inverse Document Frequency) value for",
+    )
+
     return parser

@@ -50,6 +50,21 @@ def term_freq(doc_id: int, term: str) -> int:
         return 0
 
 
+def inverse_dcoument_freq(term: str) -> float:
+    populate_index()
+
+    term_doc_count = len(
+        CURRENT_INVERTED_INDEX.get_doc_ids(term),
+    )
+    total_doc_count = len(CURRENT_INVERTED_INDEX.docmap)
+
+    import math
+
+    return math.log(
+        (total_doc_count + 1) / (term_doc_count + 1),
+    )
+
+
 # populate index func
 # only runs if index not loaded
 # if not build , use :- python -m cli.build  to build and cache the index

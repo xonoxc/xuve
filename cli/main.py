@@ -1,5 +1,5 @@
 from cli.parser import setup_parser
-from lib.keyword_search import search, term_freq
+from lib.keyword_search import search, term_freq, inverse_dcoument_freq
 
 
 def main() -> None:
@@ -28,6 +28,12 @@ def main() -> None:
             print(
                 f"Term Frequency of '{args.term}' in Document ID {args.doc_id}: {freq}"
             )
+
+        case "idf":
+            print(f"Calcualting the idf value for term {args.term}....")
+
+            idf = inverse_dcoument_freq(args.term)
+            print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
 
         case _:
             parser.print_help()
