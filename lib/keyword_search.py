@@ -41,7 +41,6 @@ def search(
 
 def calc_bm25_idf(term: str) -> float:
     populate_index()
-
     try:
         return CURRENT_INVERTED_INDEX.get_bm25_idf(
             term,
