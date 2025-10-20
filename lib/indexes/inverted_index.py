@@ -36,6 +36,23 @@ class InvertedIndex:
         # check cache integrity
         self.check_cache_integrity()
 
+    def get_bm25_idf(self, term: str) -> float:
+        tokenized_term = tokenize(term)
+        if len(tokenized_term) != 1:
+            raise ValueError(
+                "term must be a single token",
+            )
+
+        df = len(self.get_doc_ids(tokenized_term[0]))
+        total_docs = len(self.docmap)
+
+        import math
+
+        # bm25 idf formula
+        return math.log(
+            (total_docs - df + 0.5) / (df + 0.5) + 1,
+        )
+
     def check_cache_integrity(self) -> None:
         cache_dir_present = os.path.isdir(CACHE_DIR_PATH)
         if not cache_dir_present:

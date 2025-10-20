@@ -39,6 +39,18 @@ def search(
     )
 
 
+def calc_bm25_idf(term: str) -> float:
+    populate_index()
+
+    try:
+        return CURRENT_INVERTED_INDEX.get_bm25_idf(
+            term,
+        )
+    except ValueError as e:
+        print(f"Error calculating BM25 IDF for term '{term}': {str(e)}")
+        return 0.0
+
+
 def term_freq(doc_id: int, term: str) -> int:
     populate_index()
     try:
@@ -66,6 +78,8 @@ def inverse_document_freq(term: str) -> float:
 
     import math
 
+    # Formual for IDF with smoothing that is adding 1 to numerator and denominator
+    # to prevent division by zero and log(0)
     return math.log(
         (total_doc_count + 1) / (term_doc_count + 1),
     )

@@ -49,4 +49,13 @@ def setup_parser() -> argparse.ArgumentParser:
         help="Term to calculate IDF(Inverse Document Frequency) value for",
     )
 
+    bm25_idf_parser = subparsers.add_parser(
+        "bm25idf",
+        help="calcualte the BM2_IDF value for the term",
+    )
+    bm25_idf_parser.add_argument(
+        "term",
+        type=str,
+        help="Term to calculate BM2_IDF value for",
+    )
     return parser

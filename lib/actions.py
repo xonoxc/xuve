@@ -1,5 +1,11 @@
 from argparse import Namespace, ArgumentParser
-from lib.keyword_search import search, term_freq, inverse_document_freq, tf_idf
+from lib.keyword_search import (
+    calc_bm25_idf,
+    search,
+    term_freq,
+    inverse_document_freq,
+    tf_idf,
+)
 
 
 def act(args: Namespace, parser: ArgumentParser) -> None:
@@ -44,6 +50,14 @@ def act(args: Namespace, parser: ArgumentParser) -> None:
                 args.term,
             )
             print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
+
+        case "bm25idf":
+            print(f"Calcualting the bm2_idf value for term {args.term}....")
+
+            bm25_idf = calc_bm25_idf(
+                args.term,
+            )
+            print(f"BM2 Inverse document frequency of '{args.term}': {bm25_idf:.2f}")
 
         case _:
             parser.print_help()
