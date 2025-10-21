@@ -1,6 +1,7 @@
 from argparse import Namespace, ArgumentParser
 from lib.keyword_search import (
     calc_bm25_idf,
+    calc_bm25_tf,
     search,
     term_freq,
     inverse_document_freq,
@@ -20,14 +21,20 @@ COMMANDS = {
     },
     "tf": {
         "intro": lambda a: f"Finding term frequency for: {a.term} ....",
-        "action": lambda a: term_freq(int(a.doc_id), a.term),
+        "action": lambda a: term_freq(
+            int(a.doc_id),
+            a.term,
+        ),
         "format": lambda r, a: (
             f"Term Frequency of '{a.term}' in Document ID {a.doc_id}: {r}"
         ),
     },
     "tfidf": {
         "intro": lambda a: f"Finding tfidf for: {a.term} ....",
-        "action": lambda a: tf_idf(int(a.doc_id), a.term),
+        "action": lambda a: tf_idf(
+            int(a.doc_id),
+            a.term,
+        ),
         "format": lambda r, a: (
             f"TF-IDF score of '{a.term}' in document '{a.doc_id}': {r:.2f}"
         ),
@@ -46,9 +53,12 @@ COMMANDS = {
     },
     "bm25tf": {
         "intro": lambda a: f"Calculating the bm25_tf value for term {a.term} ....",
-        "action": lambda a: calc_bm25_idf(a.term),
+        "action": lambda a: calc_bm25_tf(
+            int(a.doc_id),
+            a.term,
+        ),
         "format": lambda r, a: (
-            f"BM25 Inverse document frequency of '{a.term}': {r:.2f}"
+            print(f"BM25 TF score of '{a.term}' in document '{a.doc_id}': {r:.2f}")
         ),
     },
 }

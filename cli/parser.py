@@ -4,6 +4,7 @@ from typing import List, Tuple
 
 # function responsible for creating parses
 # with the given arguments
+# on subparsers
 def create_parser(
     subparsers: argparse._SubParsersAction,
     name: str,
@@ -65,6 +66,16 @@ def setup_parser() -> argparse.ArgumentParser:
         "bm25idf",
         "Calculate the BM25_IDF value for the term",
         [("term", str, "Term to calculate BM25_IDF")],
+    )
+
+    create_parser(
+        subparsers,
+        "bm25tf",
+        "Calculate the BM25_TF value for the term",
+        [
+            ("doc_id", str, "Document ID to use for calculation of BM25_TF"),
+            ("term", str, "Term to calculate BM25_TF"),
+        ],
     )
 
     return parser
