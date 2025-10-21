@@ -50,6 +50,18 @@ def calc_bm25_idf(term: str) -> float:
         return 0.0
 
 
+def calc_bm25_tf(doc_id: int, term: str) -> float:
+    populate_index()
+    try:
+        return CURRENT_INVERTED_INDEX.get_bm25_tf(
+            doc_id,
+            term,
+        )
+    except ValueError as e:
+        print(f"Error calculating BM25 TF for term '{term}': {str(e)}")
+        return 0.0
+
+
 def term_freq(doc_id: int, term: str) -> int:
     populate_index()
     try:

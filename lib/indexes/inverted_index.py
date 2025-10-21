@@ -8,6 +8,7 @@ from config.data import (
     EXPECTED_CACHE_DIR_FILES,
     INDEX_CACHE_PATH,
     TERM_FREQUENCIES_PATH,
+    BM25_K1,
 )
 from decors.handle_file_errors import handle_file_errors, raise_error
 from lib.tokenize import tokenize
@@ -36,6 +37,9 @@ class InvertedIndex:
         # check cache integrity
         self.check_cache_integrity()
 
+    # method to get the BM25 IDF for a term
+    #  handles more cases then normal IDF
+    # and this one is  (recommended)
     def get_bm25_idf(self, term: str) -> float:
         tokenized_term = tokenize(term)
         if len(tokenized_term) != 1:
@@ -53,6 +57,22 @@ class InvertedIndex:
             (total_docs - df + 0.5) / (df + 0.5) + 1,
         )
 
+    # method to get bm25tf which handles term saturation
+    # i.e. prevents high occurence terms from dominating the
+    # search
+    def get_bm25_tf(
+        self,
+        doc_id: int,
+        term: str,
+        k1: float = BM25_K1,
+    ) -> float:
+        raw_term_freq = self.get_token_frequencies(
+            doc_id,
+            term,
+        )
+        return (raw_term_freq * (k1 + 1)) / (raw_term_freq + k1)
+
+    #  method to check if the cache is broken
     def check_cache_integrity(self) -> None:
         cache_dir_present = os.path.isdir(CACHE_DIR_PATH)
         if not cache_dir_present:
@@ -65,6 +85,7 @@ class InvertedIndex:
 
         self.cache_status = CacheStatus.BUILT
 
+    # method to add documents to the structures we are playing with
     def __add_document(self, doc_id: int, text: str):
         tokenized_text = tokenize(text)
 

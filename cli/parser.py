@@ -1,61 +1,70 @@
 import argparse
+from typing import List, Tuple
 
 
-# Function to set up the argument parser
-def setup_parser() -> argparse.ArgumentParser:
-    # Create the top-level parser
-    parser = argparse.ArgumentParser(
-        description="Keyword Search CLI",
+# function responsible for creating parses
+# with the given arguments
+def create_parser(
+    subparsers: argparse._SubParsersAction,
+    name: str,
+    help_text: str,
+    arguments: List[Tuple[str, type, str]],
+) -> None:
+    parser = subparsers.add_parser(
+        name,
+        help=help_text,
     )
+    for arg_name, arg_type, arg_help in arguments:
+        parser.add_argument(
+            arg_name,
+            type=arg_type,
+            help=arg_help,
+        )
+
+
+def setup_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Keyword Search CLI")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # Create the parser for the "search" command
-    search_parsers = subparsers.add_parser(
+    create_parser(
+        subparsers,
         "search",
-        help="Search Movies using BM25",
+        "Search Movies using BM25",
+        [("query", str, "Search Query")],
     )
-    search_parsers.add_argument("query", type=str, help="Search Query")
 
-    # Create the parser for the "tf" command
-    tf_parser = subparsers.add_parser(
+    create_parser(
+        subparsers,
         "tf",
-        help="search term frequency in a document",
+        "Search term frequency in a document",
+        [
+            ("doc_id", str, "Document ID to search in"),
+            ("term", str, "Term to search frequency for"),
+        ],
     )
-    tf_parser.add_argument("doc_id", type=str, help="Document ID to search in")
-    tf_parser.add_argument("term", type=str, help="Term to search frequency for")
 
-    # Create the parser for the "tfidf" command
-    tfidf_parser = subparsers.add_parser(
+    create_parser(
+        subparsers,
         "tfidf",
-        help="calcualte the TF-IDF value for the term",
-    )
-    tfidf_parser.add_argument(
-        "doc_id", type=str, help="Document ID to use for calcualation of TF-IDF"
-    )
-    tfidf_parser.add_argument(
-        "term",
-        type=str,
-        help="Term to calculate TF-IDF value for",
+        "Calculate the TF-IDF value for the term",
+        [
+            ("doc_id", str, "Document ID to use for calculation of TF-IDF"),
+            ("term", str, "Term to calculate TF-IDF value for"),
+        ],
     )
 
-    # Create the parser for the "idf" command
-    idf_parser = subparsers.add_parser(
+    create_parser(
+        subparsers,
         "idf",
-        help="calcualte the IDF(Inverse Document Frequency) value for the term",
-    )
-    idf_parser.add_argument(
-        "term",
-        type=str,
-        help="Term to calculate IDF(Inverse Document Frequency) value for",
+        "Calculate the IDF (Inverse Document Frequency) value for the term",
+        [("term", str, "Term to calculate IDF")],
     )
 
-    bm25_idf_parser = subparsers.add_parser(
+    create_parser(
+        subparsers,
         "bm25idf",
-        help="calcualte the BM2_IDF value for the term",
+        "Calculate the BM25_IDF value for the term",
+        [("term", str, "Term to calculate BM25_IDF")],
     )
-    bm25_idf_parser.add_argument(
-        "term",
-        type=str,
-        help="Term to calculate BM2_IDF value for",
-    )
+
     return parser

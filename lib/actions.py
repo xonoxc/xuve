@@ -8,56 +8,65 @@ from lib.keyword_search import (
 )
 
 
+COMMANDS = {
+    "search": {
+        "intro": lambda a: f"Searching For: {a.query} ....",
+        "action": lambda a: search(a.query),
+        "format": lambda r: (
+            "No results found."
+            if not r
+            else "\n".join([f"{i + 1}. {res['title']}" for i, res in enumerate(r)])
+        ),
+    },
+    "tf": {
+        "intro": lambda a: f"Finding term frequency for: {a.term} ....",
+        "action": lambda a: term_freq(int(a.doc_id), a.term),
+        "format": lambda r, a: (
+            f"Term Frequency of '{a.term}' in Document ID {a.doc_id}: {r}"
+        ),
+    },
+    "tfidf": {
+        "intro": lambda a: f"Finding tfidf for: {a.term} ....",
+        "action": lambda a: tf_idf(int(a.doc_id), a.term),
+        "format": lambda r, a: (
+            f"TF-IDF score of '{a.term}' in document '{a.doc_id}': {r:.2f}"
+        ),
+    },
+    "idf": {
+        "intro": lambda a: f"Calculating the idf value for term {a.term} ....",
+        "action": lambda a: inverse_document_freq(a.term),
+        "format": lambda r, a: (f"Inverse document frequency of '{a.term}': {r:.2f}"),
+    },
+    "bm25idf": {
+        "intro": lambda a: f"Calculating the bm25_idf value for term {a.term} ....",
+        "action": lambda a: calc_bm25_idf(a.term),
+        "format": lambda r, a: (
+            f"BM25 Inverse document frequency of '{a.term}': {r:.2f}"
+        ),
+    },
+    "bm25tf": {
+        "intro": lambda a: f"Calculating the bm25_tf value for term {a.term} ....",
+        "action": lambda a: calc_bm25_idf(a.term),
+        "format": lambda r, a: (
+            f"BM25 Inverse document frequency of '{a.term}': {r:.2f}"
+        ),
+    },
+}
+
+
 def act(args: Namespace, parser: ArgumentParser) -> None:
-    match args.command:
-        case "search":
-            print("Searching For:", args.query, "....")
-            result = search(args.query)
+    cmd = COMMANDS.get(args.command)
+    if not cmd:
+        parser.print_help()
+        return
 
-            if len(result) == 0:
-                print("No results found.")
-                return
+    print(cmd["intro"](args))
+    result = cmd["action"](args)
 
-            for i, res in enumerate(result, start=1):
-                print(f"{i}. {res['title']}")
-
-        case "tf":
-            print("Finding term frequency for:", args.term, "....")
-            freq = term_freq(
-                int(args.doc_id),
-                args.term,
-            )
-
-            print(
-                f"Term Frequency of '{args.term}' in Document ID {args.doc_id}: {freq}"
-            )
-
-        case "tfidf":
-            print("Finding tfidf for:", args.term, "....")
-            tfidf_value = tf_idf(
-                int(args.doc_id),
-                args.term,
-            )
-
-            print(
-                f"TF-IDF score of '{args.term}' in document '{args.doc_id}': {tfidf_value:.2f}"
-            )
-
-        case "idf":
-            print(f"Calcualting the idf value for term {args.term}....")
-
-            idf = inverse_document_freq(
-                args.term,
-            )
-            print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
-
-        case "bm25idf":
-            print(f"Calcualting the bm2_idf value for term {args.term}....")
-
-            bm25_idf = calc_bm25_idf(
-                args.term,
-            )
-            print(f"BM2 Inverse document frequency of '{args.term}': {bm25_idf:.2f}")
-
-        case _:
-            parser.print_help()
+    # some commands need args in format
+    try:
+        print(
+            cmd["format"](result, args),
+        )
+    except TypeError:
+        print(cmd["format"](result))

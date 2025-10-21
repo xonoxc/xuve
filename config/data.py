@@ -37,3 +37,9 @@ EXPECTED_CACHE_DIR_FILES = [
     INDEX_CACHE_PATH,
     TERM_FREQUENCIES_PATH,
 ]
+
+
+# k1 value for BM25 algorithm
+# this controls term frequency saturation
+# i.e  how quickly the term frequency contribution to the score
+BM25_K1 = 1.5
