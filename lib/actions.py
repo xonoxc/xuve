@@ -56,10 +56,11 @@ COMMANDS = {
         "action": lambda a: calc_bm25_tf(
             int(a.doc_id),
             a.term,
+            K1=float(a.k1),
+            b=float(a.b),
         ),
-        "format": lambda r, a: (
-            print(f"BM25 TF score of '{a.term}' in document '{a.doc_id}': {r:.2f}")
-        ),
+        "format": lambda r,
+        a: f"BM25 TF score of '{a.term}' in document '{a.doc_id}': {r:.2f}",
     },
 }
 

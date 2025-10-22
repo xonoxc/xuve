@@ -32,10 +32,22 @@ TERM_FREQUENCIES_PATH = os.path.join(
 )
 
 
+# file containing document length for each doc for ranking
+DOC_LENGTH_PATH = os.path.join(
+    CACHE_DIR_PATH,
+    "doc_length.json",
+)
+
+
+AVG_DOC_LENGTH = os.path.join(CACHE_DIR_PATH, "avg_doc_length.json")
+
+
 # EXPECTED CACHE FILES (if these files are not the cache directory the cache is considered corrupt)
 EXPECTED_CACHE_DIR_FILES = [
     INDEX_CACHE_PATH,
     TERM_FREQUENCIES_PATH,
+    DOC_LENGTH_PATH,
+    AVG_DOC_LENGTH,
 ]
 
 
@@ -43,3 +55,7 @@ EXPECTED_CACHE_DIR_FILES = [
 # this controls term frequency saturation
 # i.e  how quickly the term frequency contribution to the score
 BM25_K1 = 1.5
+
+
+# this one is the factor for document length normalization
+BM25_B = 0.75

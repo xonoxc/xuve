@@ -1,5 +1,5 @@
 from itertools import islice
-from typing import List
+from typing import List, Optional
 
 from config.data import DEFAULT_SEARCH_LIMIT
 from lib.indexes.inverted_index import CacheStatus, InvertedIndex
@@ -50,15 +50,19 @@ def calc_bm25_idf(term: str) -> float:
         return 0.0
 
 
-def calc_bm25_tf(doc_id: int, term: str) -> float:
+def calc_bm25_tf(
+    doc_id: int,
+    term: str,
+    K1: float,
+    b: float,
+) -> float:
     populate_index()
     try:
-        return CURRENT_INVERTED_INDEX.get_bm25_tf(
-            doc_id,
-            term,
+        return CURRENT_INVERTED_INDEX.get_bm25_tf(doc_id, term, K1, b)
+    except (KeyError, ValueError) as e:
+        print(
+            f"Error calculating BM25 TF for term '{term}': {str(e)}",
         )
-    except ValueError as e:
-        print(f"Error calculating BM25 TF for term '{term}': {str(e)}")
         return 0.0
 
 

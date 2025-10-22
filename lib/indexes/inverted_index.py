@@ -1,23 +1,25 @@
-import os
-
 import json
-from typing import Counter, Dict, List, Optional, Set, Tuple, Any
+import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Counter, Dict, List, Optional, Set, Tuple
+
+from nltk import defaultdict
 
 from config.data import (
+    AVG_DOC_LENGTH,
+    BM25_B,
+    BM25_K1,
     CACHE_DIR_PATH,
+    DOC_LENGTH_PATH,
     EXPECTED_CACHE_DIR_FILES,
     INDEX_CACHE_PATH,
     TERM_FREQUENCIES_PATH,
-    BM25_K1,
 )
 from decors.handle_file_errors import handle_file_errors, raise_error
+from lib.enums.cache_status import CacheStatus
 from lib.tokenize import tokenize
 from typedicts.files_to_write import CacheFilesToWrite
 from typedicts.movies import Movie
-from lib.enums.cache_status import CacheStatus
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-from nltk import defaultdict
 
 
 class InvertedIndex:
@@ -36,6 +38,11 @@ class InvertedIndex:
 
         # check cache integrity
         self.check_cache_integrity()
+
+        # document lengths mapped to document ids
+        self.doc_lengths: Dict[int, int] = defaultdict(int)
+
+        self.avg_doc_length: float = 0.0
 
     # method to get the BM25 IDF for a term
     #  handles more cases then normal IDF
@@ -65,12 +72,22 @@ class InvertedIndex:
         doc_id: int,
         term: str,
         k1: float = BM25_K1,
+        b: float = BM25_B,
     ) -> float:
         raw_term_freq = self.get_token_frequencies(
             doc_id,
             term,
         )
-        return (raw_term_freq * (k1 + 1)) / (raw_term_freq + k1)
+
+        doc_len = self.doc_lengths.get(doc_id)
+        if doc_len is None:
+            raise KeyError(f"doc with the id : {doc_id} does not exist")
+
+        doc_length_normalization = 1 - b + b * (doc_len / self.avg_doc_length)
+
+        return (raw_term_freq * (k1 + 1)) / (
+            raw_term_freq + k1 * doc_length_normalization
+        )
 
     #  method to check if the cache is broken
     def check_cache_integrity(self) -> None:
@@ -88,6 +105,8 @@ class InvertedIndex:
     # method to add documents to the structures we are playing with
     def __add_document(self, doc_id: int, text: str):
         tokenized_text = tokenize(text)
+
+        self.doc_lengths[doc_id] = len(tokenized_text)
 
         for token in set(tokenized_text):
             self.index.setdefault(
@@ -144,6 +163,15 @@ class InvertedIndex:
 
         print("Index built.....")
 
+    def calc_avg_doclen(self) -> float:
+        return sum(self.doc_lengths.values()) / len(self.doc_lengths)
+
+    def get_avg_doc_len(self) -> float:
+        if not self.avg_doc_length:
+            return 0.0
+
+        return self.calc_avg_doclen()
+
     # Save method
     @handle_file_errors(custom_handlers=None)
     def save(self, cache_path: str = CACHE_DIR_PATH) -> None:
@@ -162,6 +190,11 @@ class InvertedIndex:
                 },
             },
             {"path": TERM_FREQUENCIES_PATH, "data": self.term_frequencies},
+            {"path": DOC_LENGTH_PATH, "data": self.doc_lengths},
+            {
+                "path": AVG_DOC_LENGTH,
+                "data": {"value": self.calc_avg_doclen()},
+            },
         ]
 
         for file in files_to_be_written:
@@ -209,6 +242,16 @@ class InvertedIndex:
                     self.term_frequencies = {
                         int(k): Counter(v) for k, v in data.items()
                     }
+                elif os.path.samefile(
+                    file_path,
+                    DOC_LENGTH_PATH,
+                ):
+                    self.doc_lengths = {int(k): int(v) for k, v in data.items()}
+                elif os.path.samefile(
+                    file_path,
+                    AVG_DOC_LENGTH,
+                ):
+                    self.avg_doc_length = data["value"]
 
         self.is_loaded = True
         print("Index loaded successfully!")
