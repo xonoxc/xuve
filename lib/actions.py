@@ -8,6 +8,7 @@ from lib.keyword_search import (
     inverse_document_freq,
     tf_idf,
 )
+from lib.semantic_search import validate_model
 
 
 COMMANDS = {
@@ -71,6 +72,11 @@ COMMANDS = {
             for i, (doc_id, title, score) in enumerate(results)
         ),
     },
+    "verify": {
+        "intro": "verifying model.....",
+        "action": lambda: validate_model(),
+        "format": lambda: print("\n"),
+    },
 }
 
 
@@ -80,13 +86,27 @@ def act(args: Namespace, parser: ArgumentParser) -> None:
         parser.print_help()
         return
 
-    print(cmd["intro"](args))
-    result = cmd["action"](args)
+    # intro can be a callable or string
+    intro = cmd["intro"](args) if callable(cmd["intro"]) else cmd["intro"]
+    print(intro)
 
-    # some commands need args in format
+    # action may or may not take args
     try:
-        print(
-            cmd["format"](result, args),
-        )
+        result = cmd["action"](args)
     except TypeError:
-        print(cmd["format"](result))
+        result = cmd["action"]()
+
+    # format may or may not exist or take args
+    if not cmd.get("format"):
+        return
+
+    try:
+        output = cmd["format"](result, args)
+    except TypeError:
+        try:
+            output = cmd["format"](result)
+        except TypeError:
+            output = cmd["format"]()
+
+    if output:
+        print(output)

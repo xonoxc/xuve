@@ -27,9 +27,11 @@ def create_parser(
             )
 
 
-def setup_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Keyword Search CLI")
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+def setup_keyword_search_parser(master_subparser: argparse._SubParsersAction) -> None:
+    keyword_parser = master_subparser.add_parser(
+        "keyword", help="Keyword-based search commands"
+    )
+    subparsers = keyword_parser.add_subparsers(dest="command", required=True)
 
     # Search command
     create_parser(
@@ -191,5 +193,22 @@ def setup_parser() -> argparse.ArgumentParser:
             ),
         ],
     )
+
+
+def setup_semanitc_parser(master_subparser: argparse._SubParsersAction) -> None:
+    keyword_parser = master_subparser.add_parser(
+        "semantic", help="Keyword-based search commands"
+    )
+    subparsers = keyword_parser.add_subparsers(dest="command", required=True)
+
+    create_parser(subparsers, "verify", "Verify model", [])
+
+
+def setup_parsers() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Multi-mode search CLI 🌸")
+    subparsers = parser.add_subparsers(dest="mode", required=True)
+
+    setup_semanitc_parser(subparsers)
+    setup_keyword_search_parser(subparsers)
 
     return parser

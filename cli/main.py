@@ -1,9 +1,9 @@
-from cli.parser import setup_parser
+from cli.parser import setup_parsers
 from lib.actions import act
 
 
 def main() -> None:
-    parser = setup_parser()
+    parser = setup_parsers()
     args = parser.parse_args()
 
     act(args, parser)
