@@ -81,6 +81,11 @@ python -m cli.main search "a movie about a spy"
 ## Dependencies
 
 *   [nltk](https://www.nltk.org/): The Natural Language Toolkit, used for processing text data.
+*   [sentence_transformers](https://huggingface.co/sentence-transformers): The Natural Language Toolkit, used for processing text data.
+
+## Model 
+    - all-MiniLM-L6-v2
+        
 
 ## License
 
