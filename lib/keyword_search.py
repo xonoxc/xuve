@@ -1,5 +1,5 @@
 from itertools import islice
-from typing import List, Optional
+from typing import List, Tuple
 
 from config.data import DEFAULT_SEARCH_LIMIT
 from lib.indexes.inverted_index import CacheStatus, InvertedIndex
@@ -36,6 +36,18 @@ def search(
 
     return list(
         islice(result_list, limit),
+    )
+
+
+# bm25search function
+def bm25search(
+    query: str,
+    limit: int,
+) -> List[Tuple[int, str, float]]:
+    populate_index()
+    return CURRENT_INVERTED_INDEX.bm25_search(
+        query,
+        limit,
     )
 
 

@@ -170,4 +170,26 @@ def setup_parser() -> argparse.ArgumentParser:
         ],
     )
 
+    create_parser(
+        subparsers,
+        "bm25search",
+        "Search movies using full BM25 scoring",
+        [
+            CLIarg(
+                name="query",
+                type=str,
+                help="Search query",
+                is_optional=False,
+                default=None,
+            ),
+            CLIarg(
+                name="--limit",
+                type=int,
+                help="Limit of the number of search results",
+                is_optional=True,
+                default=5,
+            ),
+        ],
+    )
+
     return parser

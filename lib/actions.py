@@ -1,5 +1,6 @@
 from argparse import Namespace, ArgumentParser
 from lib.keyword_search import (
+    bm25search,
     calc_bm25_idf,
     calc_bm25_tf,
     search,
@@ -61,6 +62,14 @@ COMMANDS = {
         ),
         "format": lambda r,
         a: f"BM25 TF score of '{a.term}' in document '{a.doc_id}': {r:.2f}",
+    },
+    "bm25search": {
+        "intro": lambda a: f"searching results for term {a.query} ....",
+        "action": lambda a: bm25search(a.query, a.limit),
+        "format": lambda results: "\n".join(
+            f"{i + 1}. ({doc_id}) {title} - Score: {score:.2f}"
+            for i, (doc_id, title, score) in enumerate(results)
+        ),
     },
 }
 

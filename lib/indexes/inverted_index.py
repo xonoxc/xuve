@@ -44,6 +44,29 @@ class InvertedIndex:
 
         self.avg_doc_length: float = 0.0
 
+    def bm25_search(self, query: str, limit: int) -> List[Tuple[int, str, float]]:
+        tokenized_query = tokenize(query)
+        scores: Dict[int, float] = defaultdict(float)
+
+        for doc_id in self.docmap.keys():
+            current_score = 0.0
+            for token in tokenized_query:
+                current_score += self.bm25(doc_id, token)
+
+            scores[doc_id] = current_score
+
+        # returning ranked docs with limit
+        ranked_res = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:limit]
+        return [
+            (doc_id, self.docmap[doc_id]["title"], score)
+            for doc_id, score in ranked_res
+        ]
+
+    def bm25(self, doc_id: int, term: str) -> float:
+        return self.get_bm25_tf(doc_id, term) * self.get_bm25_idf(
+            term,
+        )
+
     # method to get the BM25 IDF for a term
     #  handles more cases then normal IDF
     # and this one is  (recommended)
