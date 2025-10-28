@@ -195,17 +195,40 @@ def setup_keyword_search_parser(master_subparser: argparse._SubParsersAction) ->
     )
 
 
-def setup_semanitc_parser(master_subparser: argparse._SubParsersAction) -> None:
+def setup_semanitc_parser(
+    master_subparser: argparse._SubParsersAction,
+) -> None:
     keyword_parser = master_subparser.add_parser(
         "semantic", help="Keyword-based search commands"
     )
     subparsers = keyword_parser.add_subparsers(dest="command", required=True)
 
     create_parser(subparsers, "verify", "Verify model", [])
+    create_parser(
+        subparsers,
+        "embed_text",
+        "Create embedding from the given text",
+        [
+            CLIarg(
+                name="text",
+                type=str,
+                help="Search Query",
+                is_optional=False,
+                default=None,
+            ),
+        ],
+    )
 
 
+# master parser setup function
+# this initializes all subparsers
+# that are :-
+# 1. semantic search parser
+# 2. keyword keyword search parser
 def setup_parsers() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Multi-mode search CLI 🌸")
+    parser = argparse.ArgumentParser(
+        description="Multi-mode search CLI",
+    )
     subparsers = parser.add_subparsers(dest="mode", required=True)
 
     setup_semanitc_parser(subparsers)

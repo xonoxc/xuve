@@ -8,7 +8,7 @@ from lib.keyword_search import (
     inverse_document_freq,
     tf_idf,
 )
-from lib.semantic_search import validate_model
+from lib.semantic_search import embed_txt, validate_model
 
 
 COMMANDS = {
@@ -72,9 +72,15 @@ COMMANDS = {
             for i, (doc_id, title, score) in enumerate(results)
         ),
     },
+    # commands below belong to semantic_search
     "verify": {
         "intro": "verifying model.....",
         "action": lambda: validate_model(),
+        "format": lambda: print("\n"),
+    },
+    "embed_text": {
+        "intro": "generating embeddings.....",
+        "action": lambda a: embed_txt(a.text),
         "format": lambda: print("\n"),
     },
 }
