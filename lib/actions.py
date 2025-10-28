@@ -8,7 +8,12 @@ from lib.keyword_search import (
     inverse_document_freq,
     tf_idf,
 )
-from lib.semantic_search import embed_txt, validate_model
+from lib.semantic_search import (
+    embed_txt,
+    semantic_search,
+    validate_model,
+    verify_embeddings,
+)
 
 
 COMMANDS = {
@@ -78,10 +83,33 @@ COMMANDS = {
         "action": lambda: validate_model(),
         "format": lambda: print("\n"),
     },
+    "verify_embeddings": {
+        "intro": "verifying embeddings.....",
+        "action": lambda: verify_embeddings(),
+        "format": lambda: print("\n"),
+    },
     "embed_text": {
         "intro": "generating embeddings.....",
         "action": lambda a: embed_txt(a.text),
         "format": lambda: print("\n"),
+    },
+    "embedquery": {
+        "intro": "generating embeddings.....",
+        "action": lambda a: embed_txt(
+            a.embed_query_text,
+        ),
+        "format": lambda: print("\n"),
+    },
+    "semantic_search": {
+        "intro": lambda a: f"searching for {a.query}.....",
+        "action": lambda a: semantic_search(
+            a.query,
+            a.limit,
+        ),
+        "format": lambda results: "\n".join(
+            f"{i + 1}. {r['title']} ({r['score']}) \n\t{r['description']}"
+            for i, r in enumerate(results)
+        ),
     },
 }
 

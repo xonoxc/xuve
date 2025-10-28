@@ -16,7 +16,6 @@ from config.data import (
     TERM_FREQUENCIES_PATH,
 )
 from decors.handle_file_errors import handle_file_errors, raise_error
-from lib.enums.cache_status import CacheStatus
 from lib.tokenize import tokenize
 from typedicts.files_to_write import CacheFilesToWrite
 from typedicts.movies import Movie
@@ -33,11 +32,6 @@ class InvertedIndex:
 
         # is cache loaded status
         self.is_loaded: bool = False
-        # cache status
-        self.cache_status: CacheStatus = CacheStatus.NOT_BUILT
-
-        # check cache integrity
-        self.check_cache_integrity()
 
         # document lengths mapped to document ids
         self.doc_lengths: Dict[int, int] = defaultdict(int)
@@ -111,19 +105,6 @@ class InvertedIndex:
         return (raw_term_freq * (k1 + 1)) / (
             raw_term_freq + k1 * doc_length_normalization
         )
-
-    #  method to check if the cache is broken
-    def check_cache_integrity(self) -> None:
-        cache_dir_present = os.path.isdir(CACHE_DIR_PATH)
-        if not cache_dir_present:
-            return
-
-        missing_files = [f for f in EXPECTED_CACHE_DIR_FILES if not os.path.exists(f)]
-        if missing_files:
-            self.cache_status = CacheStatus.CORRUPT
-            return
-
-        self.cache_status = CacheStatus.BUILT
 
     # method to add documents to the structures we are playing with
     def __add_document(self, doc_id: int, text: str):
@@ -229,7 +210,6 @@ class InvertedIndex:
                     indent=2,
                 )
 
-        self.cache_status = CacheStatus.BUILT
         print("Index saved to path...")
 
     @staticmethod

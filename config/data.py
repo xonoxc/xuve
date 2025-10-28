@@ -42,12 +42,18 @@ DOC_LENGTH_PATH = os.path.join(
 AVG_DOC_LENGTH = os.path.join(CACHE_DIR_PATH, "avg_doc_length.json")
 
 
+MOVIE_EMBDEDDINGS_PATH = os.path.join(
+    CACHE_DIR_PATH,
+    "movie_embeddings.npy",
+)
+
 # EXPECTED CACHE FILES (if these files are not the cache directory the cache is considered corrupt)
 EXPECTED_CACHE_DIR_FILES = [
     INDEX_CACHE_PATH,
     TERM_FREQUENCIES_PATH,
     DOC_LENGTH_PATH,
     AVG_DOC_LENGTH,
+    MOVIE_EMBDEDDINGS_PATH,
 ]
 
 

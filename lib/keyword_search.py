@@ -2,8 +2,9 @@ from itertools import islice
 from typing import List, Tuple
 
 from config.data import DEFAULT_SEARCH_LIMIT
-from lib.indexes.inverted_index import CacheStatus, InvertedIndex
+from lib.indexes.inverted_index import InvertedIndex
 from typedicts.movies import Movie
+
 
 from .tokenize import tokenize
 
@@ -117,26 +118,12 @@ def inverse_document_freq(term: str) -> float:
 # if not build , use :- python -m cli.build  to build and cache the index
 def populate_index() -> None:
     if CURRENT_INVERTED_INDEX.is_loaded:
-        print("already loaded returning early...")
+        print("Already loaded — skipping reload.")
         return
 
-    match CURRENT_INVERTED_INDEX.cache_status:
-        case CacheStatus.NOT_BUILT:
-            print(
-                "Index not built. Please build the index first using build command.",
-            )
-            process_dot_exit()
-
-        case CacheStatus.CORRUPT:
-            print(
-                "Cache Corrupted! Please rebuild the cache to proceed.",
-            )
-            process_dot_exit()
-
-        case CacheStatus.BUILT:
-            print("Loading index from cache...")
-            CURRENT_INVERTED_INDEX.load()
-            print("Index loaded from cache.")
+    print("Loading index from cache...")
+    CURRENT_INVERTED_INDEX.load()
+    print("Index loaded from cache.")
 
 
 def process_dot_exit():

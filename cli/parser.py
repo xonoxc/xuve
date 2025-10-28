@@ -212,9 +212,45 @@ def setup_semanitc_parser(
             CLIarg(
                 name="text",
                 type=str,
+                help="argument text",
+                is_optional=False,
+                default=None,
+            ),
+        ],
+    )
+    create_parser(
+        subparsers,
+        "embedquery",
+        "Create embedding from the given text",
+        [
+            CLIarg(
+                name="embed_query_text",
+                type=str,
+                help="Query text",
+                is_optional=False,
+                default=None,
+            ),
+        ],
+    )
+    create_parser(subparsers, "verify_embeddings", "Verify embeddings", [])
+    create_parser(
+        subparsers,
+        "semantic_search",
+        "Search Semantically for specific movies",
+        [
+            CLIarg(
+                name="query",
+                type=str,
                 help="Search Query",
                 is_optional=False,
                 default=None,
+            ),
+            CLIarg(
+                name="--limit",
+                type=int,
+                help="Max results to return",
+                is_optional=True,
+                default=10,
             ),
         ],
     )
