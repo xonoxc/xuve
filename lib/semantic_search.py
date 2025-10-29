@@ -109,21 +109,30 @@ class SemanticSearch:
         )[0]
 
 
+# naive chunking with overlaping
+# to maintain the context
 def chunk(
     text: str,
     chunk_size: int = 200,
+    overlap_size: int = 50,
 ) -> List[str]:
-    c_text = text.split()
-    if not c_text:
+    words = text.split()
+    if not words:
         return []
 
+    if overlap_size >= chunk_size:
+        raise ValueError("overlap must be smaller than chunk_size")
+
+    step = chunk_size - overlap_size
+
     return [
-        " ".join(c_text[i : i + chunk_size])
+        " ".join(words[i : i + chunk_size])
         for i in range(
             0,
-            len(c_text),
-            chunk_size,
+            len(words),
+            step,
         )
+        if words[i : i + chunk_size]
     ]
 
 

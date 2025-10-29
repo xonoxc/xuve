@@ -117,6 +117,7 @@ COMMANDS = {
         "action": lambda a: chunk(
             a.text,
             a.chunksize,
+            a.overlap,
         ),
         "format": lambda results: "\n".join(
             f"{i + 1}. {chunk}" for i, chunk in enumerate(results)

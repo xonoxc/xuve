@@ -274,6 +274,13 @@ def setup_semanitc_parser(
                 is_optional=True,
                 default=200,
             ),
+            CLIarg(
+                name="--overlap",
+                type=int,
+                help="Max results to return",
+                is_optional=True,
+                default=50,
+            ),
         ],
     )
 
