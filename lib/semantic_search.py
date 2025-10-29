@@ -109,6 +109,24 @@ class SemanticSearch:
         )[0]
 
 
+def chunk(
+    text: str,
+    chunk_size: int = 200,
+) -> List[str]:
+    c_text = text.split()
+    if not c_text:
+        return []
+
+    return [
+        " ".join(c_text[i : i + chunk_size])
+        for i in range(
+            0,
+            len(c_text),
+            chunk_size,
+        )
+    ]
+
+
 def semantic_search(query: str, limit: int) -> List[Dict[str, Any]]:
     semantic_search = SemanticSearch()
     semantic_search.load_or_create_embeddings(

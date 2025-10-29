@@ -9,6 +9,7 @@ from lib.keyword_search import (
     tf_idf,
 )
 from lib.semantic_search import (
+    chunk,
     embed_txt,
     semantic_search,
     validate_model,
@@ -109,6 +110,16 @@ COMMANDS = {
         "format": lambda results: "\n".join(
             f"{i + 1}. {r['title']} ({r['score']}) \n\t{r['description']}"
             for i, r in enumerate(results)
+        ),
+    },
+    "chunk": {
+        "intro": lambda a: f"chunking for {len(a.text)} characters.....",
+        "action": lambda a: chunk(
+            a.text,
+            a.chunksize,
+        ),
+        "format": lambda results: "\n".join(
+            f"{i + 1}. {chunk}" for i, chunk in enumerate(results)
         ),
     },
 }

@@ -255,6 +255,28 @@ def setup_semanitc_parser(
         ],
     )
 
+    create_parser(
+        subparsers,
+        "chunk",
+        "Chunk the given text",
+        [
+            CLIarg(
+                name="text",
+                type=str,
+                help="Text to chunk",
+                is_optional=False,
+                default=None,
+            ),
+            CLIarg(
+                name="--chunksize",
+                type=int,
+                help="Max results to return",
+                is_optional=True,
+                default=200,
+            ),
+        ],
+    )
+
 
 # master parser setup function
 # this initializes all subparsers
