@@ -1,3 +1,4 @@
+import re
 from typing import Dict, List, Optional, Tuple, Any
 from numpy._typing import ArrayLike
 from sentence_transformers import SentenceTransformer
@@ -107,6 +108,27 @@ class SemanticSearch:
         return self.model.encode(
             [text],
         )[0]
+
+
+def semantic_chunk(
+    text: str,
+    max_chunk_size: int = 4,
+    overlap: int = 0,
+) -> List[str]:
+    # split the sentences from the text and
+    # remove the empty spaces
+    sentences = [s for s in re.split(r"(?<=[.!?])\s+", text) if s]
+    if not sentences:
+        return []
+
+    step = max_chunk_size - overlap
+
+    return [
+        " ".join(
+            sentences[i : i + max_chunk_size],
+        )
+        for i in range(0, len(sentences), step)
+    ]
 
 
 # naive chunking with overlaping

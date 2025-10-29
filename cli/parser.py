@@ -257,6 +257,35 @@ def setup_semanitc_parser(
 
     create_parser(
         subparsers,
+        "semantic_chunk",
+        "Semantically chunk the given text",
+        [
+            CLIarg(
+                name="text",
+                type=str,
+                help="Text to chunk",
+                is_optional=False,
+                default=None,
+            ),
+            CLIarg(
+                name="--max_chunk_size",
+                type=int,
+                help="Max chunk size",
+                is_optional=True,
+                default=4,
+            ),
+            CLIarg(
+                name="--overlap",
+                type=int,
+                help="Max results to return",
+                is_optional=True,
+                default=0,
+            ),
+        ],
+    )
+
+    create_parser(
+        subparsers,
         "chunk",
         "Chunk the given text",
         [
@@ -270,7 +299,7 @@ def setup_semanitc_parser(
             CLIarg(
                 name="--chunksize",
                 type=int,
-                help="Max results to return",
+                help="Max chunk size",
                 is_optional=True,
                 default=200,
             ),

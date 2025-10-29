@@ -11,6 +11,7 @@ from lib.keyword_search import (
 from lib.semantic_search import (
     chunk,
     embed_txt,
+    semantic_chunk,
     semantic_search,
     validate_model,
     verify_embeddings,
@@ -104,12 +105,23 @@ COMMANDS = {
     "semantic_search": {
         "intro": lambda a: f"searching for {a.query}.....",
         "action": lambda a: semantic_search(
-            a.query,
-            a.limit,
+            query=a.query,
+            limit=a.limit,
         ),
         "format": lambda results: "\n".join(
             f"{i + 1}. {r['title']} ({r['score']}) \n\t{r['description']}"
             for i, r in enumerate(results)
+        ),
+    },
+    "semantic_chunk": {
+        "intro": lambda a: f"semantic chunking for {len(a.text)} characters…..",
+        "action": lambda a: semantic_chunk(
+            a.text,
+            max_chunk_size=a.max_chunk_size,
+            overlap=a.overlap,
+        ),
+        "format": lambda results: "\n".join(
+            f"{i + 1}. {chunk}" for i, chunk in enumerate(results)
         ),
     },
     "chunk": {
