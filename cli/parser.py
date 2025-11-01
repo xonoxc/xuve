@@ -288,6 +288,29 @@ def setup_semanitc_parser(
         subparsers, "embed_chunks", "Build Chunk Embeddings the given text", []
     )
 
+    # TF-IDF command
+    create_parser(
+        subparsers,
+        "search_chunked",
+        "Search using chunked semantic search",
+        [
+            CLIarg(
+                name="query",
+                type=str,
+                help="query text to search",
+                is_optional=False,
+                default=None,
+            ),
+            CLIarg(
+                name="--limit",
+                type=str,
+                help="the nummber of search resuts to return",
+                is_optional=True,
+                default=10,
+            ),
+        ],
+    )
+
     create_parser(
         subparsers,
         "chunk",

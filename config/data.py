@@ -79,3 +79,7 @@ BM25_K1 = 1.5
 
 # this one is the factor for document length normalization
 BM25_B = 0.75
+
+
+# ranking score precision
+SCORE_PRECISION = 4

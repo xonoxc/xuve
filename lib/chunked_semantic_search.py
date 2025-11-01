@@ -1,10 +1,10 @@
 import os
 import json
 import numpy as np
-from config.data import CHUNK_EMBDEDDINGS_PATH, CHUNK_METADATA_PATH
+from config.data import CHUNK_EMBDEDDINGS_PATH, CHUNK_METADATA_PATH, SCORE_PRECISION
 from decors.handle_json_load_errors import handle_json_errors
 from lib.data_loaders import load_movie_data
-from lib.semantic_search import SemanticSearch, semantic_chunk
+from lib.semantic_search import SemanticSearch, semantic_chunk, cosine_similarity
 from typedicts.movies import Movie
 
 from typing import List, Dict, Optional, Any
@@ -19,13 +19,53 @@ class ChunkedSemanticSearch(SemanticSearch):
         super().__init__(model_name)
 
         # chunked embeddings and metadata
-        self.chunked_embeddings: Optional[np.ndarray] = None
+        self.chunked_embeddings: np.ndarray = np.empty((0,))
         # chunked metadata
         self.chunked_metadata: Optional[List[Dict[str, Any]]] = None
         # total number of chunks
         self.total_chunks: int = 0
 
         self.is_loaded = False
+
+    def search_chunks(
+        self,
+        query: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        query_embedding = self.generate_embedding(
+            query,
+        )
+
+        chunk_scores = []
+        for _, (embedding, meta_data) in enumerate(
+            zip(self.chunked_embeddings, self.chunked_metadata or []),
+        ):
+            cosine_sim = cosine_similarity(embedding, query_embedding)
+
+            movie_idx = meta_data["movie_idx"]
+            chunk_idx = meta_data["chunk_idx"]
+
+            movie = self.documents[movie_idx]
+            title = movie.get("title", "Unknown")
+            document_text = movie.get("description", "")
+
+            chunk_scores.append(
+                {
+                    "id": movie.get("id", movie_idx),
+                    "title": title,
+                    "document": document_text[:100],
+                    "score": round(float(cosine_sim), SCORE_PRECISION),
+                    "metadata": {
+                        "chunk_idx": chunk_idx,
+                        "movie_idx": movie_idx,
+                        "total_chunks": meta_data.get("total_chunks", 0),
+                    },
+                }
+            )
+
+        chunk_scores.sort(key=lambda x: x["score"], reverse=True)
+
+        return chunk_scores[:limit]
 
     # checcks if chunked embedding cache files exist
     def check_embedding_cache_exists(self) -> bool:
@@ -112,8 +152,32 @@ class ChunkedSemanticSearch(SemanticSearch):
         return embddings
 
 
-def embed_chunks() -> None:
-    chunked_semeantic_search = ChunkedSemanticSearch()
-    embeddings = chunked_semeantic_search.load_chunk_embeddings()
+CHUNKED_SEMEANTIC_SEARCH = ChunkedSemanticSearch()
 
-    print(f"Generated {len(embeddings)} chunked embeddings")
+
+def populate_embeddings() -> np.ndarray:
+    if not CHUNKED_SEMEANTIC_SEARCH.check_embedding_cache_exists():
+        CHUNKED_SEMEANTIC_SEARCH.build_chunk_embeddings(
+            load_movie_data(),
+        )
+
+    return CHUNKED_SEMEANTIC_SEARCH.load_chunk_embeddings()
+
+
+# actual searching function
+def chunked_semantic_search(
+    query: str,
+    limit: int = 10,
+) -> List[Dict[str, Any]]:
+    populate_embeddings()
+    return CHUNKED_SEMEANTIC_SEARCH.search_chunks(
+        query,
+        limit,
+    )
+
+
+def embed_chunks() -> None:
+    embeddings = populate_embeddings()
+    print(
+        f"Generated {len(embeddings)} chunked embeddings",
+    )

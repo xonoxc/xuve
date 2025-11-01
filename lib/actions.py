@@ -1,5 +1,5 @@
 from argparse import Namespace, ArgumentParser
-from lib.chunked_semantic_search import embed_chunks
+from lib.chunked_semantic_search import chunked_semantic_search, embed_chunks
 from lib.keyword_search import (
     bm25search,
     calc_bm25_idf,
@@ -140,6 +140,17 @@ COMMANDS = {
         "intro": lambda _: "generating chunk embeddings.....",
         "action": lambda: embed_chunks(),
         "format": lambda: print("\n"),
+    },
+    "search_chunked": {
+        "intro": lambda a: f"Chukned Searching For: {a.query} ....",
+        "action": lambda a: chunked_semantic_search(
+            a.query,
+            a.limit,
+        ),
+        "format": lambda results: "\n".join(
+            f"\n{i + 1}. {r['title']} (score: {r['score']:.4f})\n   {r['document']}..."
+            for i, r in enumerate(results)
+        ),
     },
 }
 
