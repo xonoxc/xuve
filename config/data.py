@@ -47,6 +47,18 @@ MOVIE_EMBDEDDINGS_PATH = os.path.join(
     "movie_embeddings.npy",
 )
 
+
+CHUNK_EMBDEDDINGS_PATH = os.path.join(
+    CACHE_DIR_PATH,
+    "chunk_embeddings.npy",
+)
+
+CHUNK_METADATA_PATH = os.path.join(
+    CACHE_DIR_PATH,
+    "chunk_embeddings.json",
+)
+
+
 # EXPECTED CACHE FILES (if these files are not the cache directory the cache is considered corrupt)
 EXPECTED_CACHE_DIR_FILES = [
     INDEX_CACHE_PATH,
@@ -54,6 +66,8 @@ EXPECTED_CACHE_DIR_FILES = [
     DOC_LENGTH_PATH,
     AVG_DOC_LENGTH,
     MOVIE_EMBDEDDINGS_PATH,
+    CHUNK_EMBDEDDINGS_PATH,
+    CHUNK_METADATA_PATH,
 ]
 
 

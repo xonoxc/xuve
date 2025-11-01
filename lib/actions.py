@@ -1,4 +1,5 @@
 from argparse import Namespace, ArgumentParser
+from lib.chunked_semantic_search import embed_chunks
 from lib.keyword_search import (
     bm25search,
     calc_bm25_idf,
@@ -134,6 +135,11 @@ COMMANDS = {
         "format": lambda results: "\n".join(
             f"{i + 1}. {chunk}" for i, chunk in enumerate(results)
         ),
+    },
+    "embed_chunks": {
+        "intro": lambda _: "generating chunk embeddings.....",
+        "action": lambda: embed_chunks(),
+        "format": lambda: print("\n"),
     },
 }
 

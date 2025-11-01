@@ -1,3 +1,4 @@
+from lib.chunked_semantic_search import ChunkedSemanticSearch
 from lib.data_loaders import load_movie_data
 from lib.indexes.inverted_index import InvertedIndex
 from lib.semantic_search import SemanticSearch
@@ -18,6 +19,11 @@ def build_cache() -> None:
         movie_data,
     )
     SEMANTICSEARCH.save_embeddings()
+
+    CHUNKED_SEMANTIC_SEARCH = ChunkedSemanticSearch()
+    CHUNKED_SEMANTIC_SEARCH.build_chunk_embeddings(
+        movie_data,
+    )
 
 
 if __name__ == "__main__":

@@ -10,10 +10,10 @@ from typedicts.movies import Movie
 
 
 class SemanticSearch:
-    def __init__(self) -> None:
+    def __init__(self, model_name: Optional[str] = None) -> None:
         # model that is used for embedding
         self.model = SentenceTransformer(
-            "all-MiniLM-L6-v2",
+            model_name or "all-MiniLM-L6-v2",
         )
 
         # n- dimensional array of embeddings

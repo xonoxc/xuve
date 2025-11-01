@@ -285,6 +285,10 @@ def setup_semanitc_parser(
     )
 
     create_parser(
+        subparsers, "embed_chunks", "Build Chunk Embeddings the given text", []
+    )
+
+    create_parser(
         subparsers,
         "chunk",
         "Chunk the given text",
