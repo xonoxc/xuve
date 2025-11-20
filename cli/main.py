@@ -10,7 +10,7 @@ def main() -> None:
         match CACHE.cache_status:
             case CacheStatus.NOT_BUILT:
                 print(
-                    "❌ Cache not built. Please build the index first using 'python -m cli.build'."
+                    "Cache not built. Please build the index first using 'python -m cli.build'."
                 )
             case CacheStatus.CORRUPT:
                 print("Cache corrupted. Please rebuild it before continuing.")

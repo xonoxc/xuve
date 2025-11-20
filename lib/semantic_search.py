@@ -100,10 +100,10 @@ class SemanticSearch:
         text: str,
     ) -> np.ndarray:
         text = text.strip()
+
         if not text:
-            raise ValueError(
-                "Text is empty or only whitespace",
-            )
+            print("Warning: Empty text provided for embedding.")
+            return np.array([])
 
         return self.model.encode(
             [text],
@@ -219,14 +219,9 @@ def verify_embeddings() -> None:
 def embed_txt(text: str) -> None:
     semantic_search = SemanticSearch()
 
-    embedding: Optional[np.ndarray] = None
-    try:
-        embedding = semantic_search.generate_embedding(
-            text,
-        )
-    except ValueError as e:
-        print("Error:", e)
-        return
+    embedding = semantic_search.generate_embedding(
+        text,
+    )
 
     print(f"Text: {text}")
     print(f"First 3 dimensions: {embedding[:3]}")

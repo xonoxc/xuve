@@ -17,3 +17,5 @@ def handle_json_errors(fn: F) -> F:
             print(f"Unexpected error: {e}")
 
     return cast(F, wrapper)
+
+
