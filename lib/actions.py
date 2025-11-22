@@ -1,5 +1,6 @@
 from argparse import Namespace, ArgumentParser
 from lib.chunked_semantic_search import chunked_semantic_search, embed_chunks
+from lib.hybrid_search import normalize_scores
 from lib.keyword_search import (
     bm25search,
     calc_bm25_idf,
@@ -151,6 +152,13 @@ COMMANDS = {
             f"\n{i + 1}. {r['title']} (score: {r['score']:.4f})\n   {r['document']}..."
             for i, r in enumerate(results)
         ),
+    },
+    "normalize": {
+        "intro": lambda a: "Normalizing scroes....",
+        "action": lambda a: normalize_scores(
+            a.scores,
+        ),
+        "format": lambda a: "\n".join(f"* {score:.4f}" for score in a),
     },
 }
 

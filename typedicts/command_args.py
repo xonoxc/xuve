@@ -1,4 +1,4 @@
-from typing import NamedTuple, Any
+from typing import NamedTuple, Any, Optional
 
 
 class CLIarg(NamedTuple):
@@ -7,3 +7,4 @@ class CLIarg(NamedTuple):
     help: str
     is_optional: bool
     default: Any
+    nargs: Optional[str] = None

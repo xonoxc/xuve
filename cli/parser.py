@@ -1,5 +1,6 @@
 import argparse
 from typing import List
+
 from config.data import BM25_B, BM25_K1
 from typedicts.command_args import CLIarg
 
@@ -17,13 +18,19 @@ def create_parser(
 
     for arg in arguments:
         if not arg.is_optional:
-            parser.add_argument(arg.name, type=arg.type, help=arg.help)
+            parser.add_argument(
+                arg.name,
+                type=arg.type,
+                help=arg.help,
+                nargs=arg.nargs,
+            )
         else:
             parser.add_argument(
                 arg.name,
                 type=arg.type,
                 help=arg.help,
                 default=arg.default,
+                nargs=arg.nargs,
             )
 
 
@@ -341,18 +348,57 @@ def setup_semanitc_parser(
     )
 
 
+def setup_hybrid_search_parser(
+    master_subparser: argparse._SubParsersAction,
+) -> None:
+    hybrid_search_parser = master_subparser.add_parser(
+        "hybrid",
+        help="use hybrid search mode",
+    )
+
+    subparsers = hybrid_search_parser.add_subparsers(dest="command", required=True)
+
+    create_parser(
+        subparsers,
+        "normalize",
+        "normalize bm25 and consine scores",
+        [
+            CLIarg(
+                name="scores",
+                type=float,
+                help="Search scores to be normalized",
+                is_optional=False,
+                default=None,
+                nargs="+",
+            ),
+        ],
+    )
+
+
+# just add functions here and they'll be
+# setup automatically
+PARSER_FUNCS = [
+    setup_semanitc_parser,
+    setup_keyword_search_parser,
+    setup_hybrid_search_parser,
+]
+
+
 # master parser setup function
 # this initializes all subparsers
 # that are :-
 # 1. semantic search parser
 # 2. keyword keyword search parser
+# 3. hybrid search parser
 def setup_parsers() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Multi-mode search CLI",
     )
     subparsers = parser.add_subparsers(dest="mode", required=True)
 
-    setup_semanitc_parser(subparsers)
-    setup_keyword_search_parser(subparsers)
+    for parser_setup_func in PARSER_FUNCS:
+        parser_setup_func(
+            subparsers,
+        )
 
     return parser
