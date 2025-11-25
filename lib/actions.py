@@ -1,6 +1,6 @@
 from argparse import Namespace, ArgumentParser
 from lib.chunked_semantic_search import chunked_semantic_search, embed_chunks
-from lib.hybrid_search import normalize_scores
+from lib.hybrid_search import exec_weighted_search, normalize_scores
 from lib.keyword_search import (
     bm25search,
     calc_bm25_idf,
@@ -153,12 +153,30 @@ COMMANDS = {
             for i, r in enumerate(results)
         ),
     },
+    # commands below are for hybrid_search
     "normalize": {
-        "intro": lambda a: "Normalizing scroes....",
+        "intro": lambda _: "Normalizing scroes....",
         "action": lambda a: normalize_scores(
             a.scores,
         ),
         "format": lambda a: "\n".join(f"* {score:.4f}" for score in a),
+    },
+    "weighted-search": {
+        "intro": lambda a: f"Weighted Searching For: {a.query} ....",
+        "action": lambda a: exec_weighted_search(
+            a.query,
+            a.alpha,
+            a.limit,
+        ),
+        "format": lambda results: "\n".join(
+            f"""{i + 1}. {r.movie["title"]}
+           Hybrid Score: {r.hybrid_score:.3f}
+           BM25: {r.keyword_score:.3f}, Semantic: {r.semantic_score:.3f}
+           {r.movie["description"][:150]}..."""
+            for i, r in enumerate(results)
+        )
+        if results
+        else "no results found",
     },
 }
 

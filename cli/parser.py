@@ -374,6 +374,35 @@ def setup_hybrid_search_parser(
         ],
     )
 
+    create_parser(
+        subparsers,
+        "weighted-search",
+        "hybrid search based on normalized bm25 and consine scores",
+        [
+            CLIarg(
+                name="query",
+                type=str,
+                help="Search Query",
+                is_optional=False,
+                default=None,
+            ),
+            CLIarg(
+                name="--alpha",
+                type=int,
+                help="Alpha constant value",
+                is_optional=True,
+                default=0.5,
+            ),
+            CLIarg(
+                name="--limit",
+                type=int,
+                help="Limit of the number of search results",
+                is_optional=True,
+                default=5,
+            ),
+        ],
+    )
+
 
 # just add functions here and they'll be
 # setup automatically

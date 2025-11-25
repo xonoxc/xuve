@@ -46,6 +46,7 @@ class SemanticSearch:
 
         return [
             {
+                "id": doc["id"],
                 "score": round(score, 4),
                 "title": doc["title"],
                 "description": doc["description"],

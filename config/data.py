@@ -83,3 +83,10 @@ BM25_B = 0.75
 
 # ranking score precision
 SCORE_PRECISION = 4
+
+
+# alpha constant value that controls how much keyword
+# for example => alpha = 0.7 means 70% keyword score weightage and 30% semantic
+# alpha = 0.5 means 50/50 weightage
+# alpha = 0.3 means 30% keyword score weight and 70% sematic
+ALPHA = 0.5
