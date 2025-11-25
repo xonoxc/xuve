@@ -5,6 +5,8 @@ description = "RAG system for searching and retrieving information from movies d
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "dotenv>=0.9.9",
+    "google-genai>=1.52.0",
     "nltk>=3.9.2",
     "numpy>=2.3.4",
     "sentence-transformers>=5.1.2",

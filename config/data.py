@@ -93,3 +93,10 @@ ALPHA = 0.5
 
 
 RRF_K = 60  # constant for Reciprocal Rank Fusion
+
+
+# system prompt for ai model
+
+SYSTEM_PROMPT = (
+    "why is internet such a great place to learn about RAG? Use one paragraph maximum."
+)
