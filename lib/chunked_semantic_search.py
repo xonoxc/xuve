@@ -9,6 +9,8 @@ from typedicts.movies import Movie
 
 from typing import List, Dict, Optional, Any
 
+from typedicts.search_res import ChunkMetadata, SemanticChunkSearchRes
+
 
 class ChunkedSemanticSearch(SemanticSearch):
     def __init__(
@@ -31,7 +33,7 @@ class ChunkedSemanticSearch(SemanticSearch):
         self,
         query: str,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[SemanticChunkSearchRes]:
         query_embedding = self.generate_embedding(
             query,
         )
@@ -50,17 +52,17 @@ class ChunkedSemanticSearch(SemanticSearch):
             document_text = movie.get("description", "")
 
             chunk_scores.append(
-                {
-                    "id": movie.get("id", movie_idx),
-                    "title": title,
-                    "document": document_text[:100],
-                    "score": round(float(cosine_sim), SCORE_PRECISION),
-                    "metadata": {
-                        "chunk_idx": chunk_idx,
-                        "movie_idx": movie_idx,
-                        "total_chunks": meta_data.get("total_chunks", 0),
-                    },
-                }
+                SemanticChunkSearchRes(
+                    id=movie.get("id", movie_idx),
+                    title=title,
+                    document=document_text[:100],
+                    score=round(float(cosine_sim), SCORE_PRECISION),
+                    metadata=ChunkMetadata(
+                        chunk_idx,
+                        movie_idx,
+                        total_chunks=meta_data.get("total_chunks", 0),
+                    ),
+                )
             )
 
         chunk_scores.sort(key=lambda x: x["score"], reverse=True)
@@ -168,7 +170,7 @@ def populate_embeddings() -> np.ndarray:
 def chunked_semantic_search(
     query: str,
     limit: int = 10,
-) -> List[Dict[str, Any]]:
+) -> List[SemanticChunkSearchRes]:
     populate_embeddings()
     return CHUNKED_SEMEANTIC_SEARCH.search_chunks(
         query,

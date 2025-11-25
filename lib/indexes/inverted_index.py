@@ -52,7 +52,11 @@ class InvertedIndex:
         # returning ranked docs with limit
         ranked_res = sorted(scores.items(), key=lambda x: x[1], reverse=True)[:limit]
         return [
-            (doc_id, self.docmap[doc_id]["title"], score)
+            (
+                doc_id,
+                self.docmap[doc_id]["title"],
+                score,
+            )
             for doc_id, score in ranked_res
         ]
 

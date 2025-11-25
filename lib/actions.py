@@ -1,6 +1,6 @@
 from argparse import Namespace, ArgumentParser
 from lib.chunked_semantic_search import chunked_semantic_search, embed_chunks
-from lib.hybrid_search import exec_weighted_search, normalize_scores
+from lib.hybrid_search import exec_rrf_search, exec_weighted_search, normalize_scores
 from lib.keyword_search import (
     bm25search,
     calc_bm25_idf,
@@ -111,7 +111,7 @@ COMMANDS = {
             limit=a.limit,
         ),
         "format": lambda results: "\n".join(
-            f"{i + 1}. {r['title']} ({r['score']}) \n\t{r['description']}"
+            f"{i + 1}. {r.title} ({r.score}) \n\t{r.description}"
             for i, r in enumerate(results)
         ),
     },
@@ -149,7 +149,7 @@ COMMANDS = {
             a.limit,
         ),
         "format": lambda results: "\n".join(
-            f"\n{i + 1}. {r['title']} (score: {r['score']:.4f})\n   {r['document']}..."
+            f"\n{i + 1}. {r.title} (score: {r.score:.4f})\n   {r.document}..."
             for i, r in enumerate(results)
         ),
     },
@@ -177,6 +177,21 @@ COMMANDS = {
         )
         if results
         else "no results found",
+    },
+    "rrf-search": {
+        "intro": lambda a: f"RRF Searching For: {a.query}....",
+        "action": lambda a: exec_rrf_search(
+            query=a.query,
+            limit=a.limit,
+            k=a.k,
+        ),
+        "format": lambda results: "\n\n".join(
+            f"{i + 1}. {r.movie['title']}\n"
+            f"   RRF Score: {r.rrf_score:.3f}\n"
+            f"   BM25 Rank: {r.keyword_rank}, Semantic Rank: {r.semantic_rank}\n"
+            f"   {r.movie['description'][:120]}..."
+            for i, r in enumerate(results)
+        ),
     },
 }
 

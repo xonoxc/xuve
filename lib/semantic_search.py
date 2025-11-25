@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple
 from numpy._typing import ArrayLike
 from sentence_transformers import SentenceTransformer
 import numpy as np
@@ -7,6 +7,7 @@ import numpy as np
 from config.data import MOVIE_EMBDEDDINGS_PATH
 from lib.data_loaders import load_movie_data
 from typedicts.movies import Movie
+from typedicts.search_res import SemanticSearchRes
 
 
 class SemanticSearch:
@@ -24,7 +25,7 @@ class SemanticSearch:
         self.doc_map: Dict[int, Movie] = {}
 
     # this one is actual search function now
-    def search(self, query: str, limit: int) -> List[Dict[str, Any]]:
+    def search(self, query: str, limit: int) -> List[SemanticSearchRes]:
         if not self.embeddings.size > 0:
             raise ValueError(
                 "No embeddings loaded. Call `load_or_create_embeddings` first."
@@ -45,12 +46,12 @@ class SemanticSearch:
         sorted_res = sorted(smilarity_res, key=lambda mem: mem[0], reverse=True)[:limit]
 
         return [
-            {
-                "id": doc["id"],
-                "score": round(score, 4),
-                "title": doc["title"],
-                "description": doc["description"],
-            }
+            SemanticSearchRes(
+                id=doc["id"],
+                score=round(score, 4),
+                title=doc["title"],
+                description=doc["description"],
+            )
             for score, doc in sorted_res
         ]
 
@@ -159,7 +160,7 @@ def chunk(
     ]
 
 
-def semantic_search(query: str, limit: int) -> List[Dict[str, Any]]:
+def semantic_search(query: str, limit: int) -> List[SemanticSearchRes]:
     semantic_search = SemanticSearch()
     semantic_search.load_or_create_embeddings(
         load_movie_data(),

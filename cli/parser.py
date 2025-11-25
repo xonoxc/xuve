@@ -376,6 +376,35 @@ def setup_hybrid_search_parser(
 
     create_parser(
         subparsers,
+        "rrf-search",
+        "rrf based hybrid search",
+        [
+            CLIarg(
+                name="query",
+                type=str,
+                help="Search Query",
+                is_optional=False,
+                default=None,
+            ),
+            CLIarg(
+                name="--k",
+                type=int,
+                help="rrf-k value constant value",
+                is_optional=True,
+                default=0.5,
+            ),
+            CLIarg(
+                name="--limit",
+                type=int,
+                help="Limit of the number of search results",
+                is_optional=True,
+                default=5,
+            ),
+        ],
+    )
+
+    create_parser(
+        subparsers,
         "weighted-search",
         "hybrid search based on normalized bm25 and consine scores",
         [

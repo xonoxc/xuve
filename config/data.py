@@ -90,3 +90,6 @@ SCORE_PRECISION = 4
 # alpha = 0.5 means 50/50 weightage
 # alpha = 0.3 means 30% keyword score weight and 70% sematic
 ALPHA = 0.5
+
+
+RRF_K = 60  # constant for Reciprocal Rank Fusion

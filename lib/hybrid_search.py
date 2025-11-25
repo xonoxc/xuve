@@ -3,7 +3,8 @@ from typing import Dict, List, Optional, Tuple
 from config.data import ALPHA
 from lib.chunked_semantic_search import ChunkedSemanticSearch
 from typedicts.movies import Movie
-from typedicts.search_res import HybridScores, WeightedSearchResult
+from typedicts.rrf_search import DocumentRanks
+from typedicts.search_res import HybridScores, RRFSearchResult, WeightedSearchResult
 
 
 from lib.data_loaders import load_movie_data
@@ -15,18 +16,25 @@ from .keyword_search import InvertedIndex
 # -- Me , 2025
 class HybridSearch:
     def __init__(self):
-        self.documents: List[Movie] = load_movie_data()
+        movie_data = load_movie_data()
+
+        self.documents_list: List[Movie] = movie_data
         self.semantic_search = ChunkedSemanticSearch()
-        self.semantic_search.load_chunk_embeddings()
+
+        self.documents: Dict[int, Movie] = {m["id"]: m for m in movie_data}
+
+        self.semantic_search.load_or_create_embeddings(
+            movie_data,
+        )
 
         self.inverted_idx = InvertedIndex()
+        self.inverted_idx.load()
 
     def bm25_search(
         self,
         query: str,
         limit: int,
     ) -> List[Tuple[int, str, float]]:
-        self.inverted_idx.load()
         return self.inverted_idx.bm25_search(
             query,
             limit,
@@ -44,16 +52,13 @@ class HybridSearch:
             500 * limit,
         )
 
-        self.semantic_search.load_or_create_embeddings(self.documents)
         semantic_search_results = self.semantic_search.search(
             query,
             500 * limit,
         )
 
         nm_kw_score = normalize_scores([s[-1] for s in keyword_search_results])
-        nm_semantic_score = normalize_scores(
-            [e["score"] for e in semantic_search_results]
-        )
+        nm_semantic_score = normalize_scores([e.score for e in semantic_search_results])
 
         scores_map_dict: Dict[int, HybridScores] = dict()
 
@@ -64,7 +69,7 @@ class HybridSearch:
             )
 
         for res, score in zip(semantic_search_results, nm_semantic_score):
-            doc_id = res["id"]
+            doc_id = res.id
             if doc_id in scores_map_dict:
                 scores_map_dict[doc_id].sem_score = score
             else:
@@ -98,10 +103,80 @@ class HybridSearch:
         query: str,
         k: int = 5,
         limit: int = 10,
-    ):
-        raise NotImplementedError(
-            "RRF hybrid search is not implemented yet.",
+    ) -> List[RRFSearchResult]:
+        kw_search_res = self.bm25_search(
+            query,
+            500 * limit,
         )
+
+        sem_search_res = self.semantic_search.search(
+            query,
+            500 * limit,
+        )
+
+        score_map: Dict[int, DocumentRanks] = dict()
+
+        for rank, (doc_id, _, _) in enumerate(kw_search_res, start=1):
+            if doc_id not in score_map:
+                score_map[doc_id] = DocumentRanks(
+                    document=self.documents[doc_id],
+                    semantic_rank=0,
+                    keyword_rank=rank,
+                )
+
+            else:
+                score_map[doc_id].keyword_rank = rank
+
+        for rank, res in enumerate(sem_search_res, start=1):
+            doc_id = res.id
+            if doc_id not in score_map:
+                score_map[doc_id] = DocumentRanks(
+                    document=self.documents[doc_id],
+                    keyword_rank=0,
+                    semantic_rank=rank,
+                )
+            else:
+                score_map[doc_id].semantic_rank = rank
+
+        sorted_fused_scores = self.calc_fused_ranks(
+            score_map,
+            k,
+        )
+
+        return [
+            RRFSearchResult(
+                id=doc_id,
+                movie=self.documents[doc_id],
+                rrf_score=fused,
+                keyword_rank=score_map[doc_id].keyword_rank,
+                semantic_rank=score_map[doc_id].semantic_rank,
+            )
+            for doc_id, fused in sorted_fused_scores[:limit]
+        ]
+
+    # helper function to claculate fused ranks
+    # and returned the reverse sorted list
+    def calc_fused_ranks(
+        self, score_mapping: Dict[int, DocumentRanks], k: int
+    ) -> List[Tuple[int, float]]:
+        fused_scores = []
+        for doc_id, ranks in score_mapping.items():
+            fused = 0.0
+
+            if ranks.keyword_rank > 0:
+                fused += rrf_score(ranks.keyword_rank, k)
+
+            if ranks.semantic_rank > 0:
+                fused += rrf_score(ranks.semantic_rank, k)
+
+            fused_scores.append((doc_id, fused))
+
+        return sorted(fused_scores, key=lambda x: x[1], reverse=True)
+
+
+# function to calcualte rrf score
+def rrf_score(rank: float, k=60) -> float:
+    return 1 / (k + rank)
 
 
 # this function normalizes the smeantic and bm25 scores
@@ -135,12 +210,25 @@ def hybrid_score(
     return alpha * bm25_score + (1 - alpha) * semantic_score
 
 
+def exec_rrf_search(
+    query: str,
+    limit: int = 5,
+    k: int = 60,
+) -> List[RRFSearchResult]:
+    hybrid_search_instance = HybridSearch()
+
+    return hybrid_search_instance.rrf_search(
+        query,
+        k,
+        limit,
+    )
+
+
 def exec_weighted_search(
     query: str,
     alpha,
     limit: int = 5,
 ) -> List[WeightedSearchResult]:
-    # load movie data
     hybrid_search_instance = HybridSearch()
 
     return hybrid_search_instance.weighted_search(

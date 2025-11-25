@@ -10,9 +10,44 @@ class HybridScores:
 
 
 @dataclass
-class WeightedSearchResult:
+class BaseSearchResult:
     id: int
     movie: Movie
+
+
+@dataclass
+class WeightedSearchResult(BaseSearchResult):
     hybrid_score: float
     semantic_score: float
     keyword_score: float
+
+
+@dataclass
+class RRFSearchResult(BaseSearchResult):
+    rrf_score: float
+    semantic_rank: float
+    keyword_rank: float
+
+
+@dataclass
+class SemanticSearchRes:
+    id: int
+    score: float
+    title: str
+    description: str
+
+
+@dataclass
+class ChunkMetadata:
+    chunk_idx: int
+    movie_idx: int
+    total_chunks: int
+
+
+@dataclass
+class SemanticChunkSearchRes:
+    id: int
+    title: str
+    document: str
+    score: float
+    metadata: ChunkMetadata
