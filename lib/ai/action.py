@@ -1,29 +1,21 @@
 from google.genai.errors import ServerError, APIError
 
 from lib.ai.client import LLM_CLIENT
+from lib.ai.prompt_builders import build_prompt
+
 from lib.enums.enahnce_methods import EnhanceMethod
 
 
-def build_prompt(query: str) -> str:
-    return f"""Fix any spelling errors in this movie search query.
-
-           Only correct obvious typos. Don't change correctly spelled words.
-
-           Query: "{query}"
-
-           If no errors, return the original query.DONT MAKE ANY MISTAKES!!!
-           Corrected:"""
-
-
-def generate_correct_spelling(query: str, method: EnhanceMethod | None) -> str:
+def enhance_query(query: str, method: EnhanceMethod | None) -> str:
     if not method:
-        return ""
+        return query.strip()
 
     try:
         response = LLM_CLIENT.models.generate_content(
             model="gemini-2.5-flash",
             contents=build_prompt(
                 query.strip(),
+                EnhanceMethod(method),
             ),
         )
     except (ServerError, APIError) as e:

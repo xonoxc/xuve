@@ -406,7 +406,7 @@ def setup_hybrid_search_parser(
             CLIarg(
                 name="--enhance",
                 type=str,
-                choices=["spell"],
+                choices=["spell", "rewrite"],
                 is_optional=False,
                 help="Query enhancement method",
                 default=None,
