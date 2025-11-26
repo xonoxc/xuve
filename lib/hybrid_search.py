@@ -1,7 +1,9 @@
 from typing import Dict, List, Optional, Tuple
 
 from config.data import ALPHA
+from lib.ai.speller import generate_correct_spelling
 from lib.chunked_semantic_search import ChunkedSemanticSearch
+from lib.enums.enahnce_methods import EnhanceMethod
 from typedicts.movies import Movie
 from typedicts.rrf_search import DocumentRanks
 from typedicts.search_res import HybridScores, RRFSearchResult, WeightedSearchResult
@@ -214,11 +216,17 @@ def exec_rrf_search(
     query: str,
     limit: int = 5,
     k: int = 60,
+    enahnce_method: EnhanceMethod | None = None,
 ) -> List[RRFSearchResult]:
     hybrid_search_instance = HybridSearch()
 
-    return hybrid_search_instance.rrf_search(
+    enahanced_query = generate_correct_spelling(
         query,
+        enahnce_method,
+    )
+
+    return hybrid_search_instance.rrf_search(
+        enahanced_query or query.strip(),
         k,
         limit,
     )

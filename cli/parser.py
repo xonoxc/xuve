@@ -13,6 +13,7 @@ def create_parser(
     name: str,
     help_text: str,
     arguments: List[CLIarg],
+    choices: List[str] | None = None,
 ):
     parser = subparsers.add_parser(name, help=help_text)
 
@@ -22,6 +23,7 @@ def create_parser(
                 arg.name,
                 type=arg.type,
                 help=arg.help,
+                choices=choices,
                 nargs=arg.nargs,
             )
         else:
@@ -30,6 +32,7 @@ def create_parser(
                 type=arg.type,
                 help=arg.help,
                 default=arg.default,
+                choices=choices,
                 nargs=arg.nargs,
             )
 
@@ -399,6 +402,14 @@ def setup_hybrid_search_parser(
                 help="Limit of the number of search results",
                 is_optional=True,
                 default=5,
+            ),
+            CLIarg(
+                name="--enhance",
+                type=str,
+                choices=["spell"],
+                is_optional=False,
+                help="Query enhancement method",
+                default=None,
             ),
         ],
     )

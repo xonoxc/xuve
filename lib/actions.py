@@ -181,9 +181,7 @@ COMMANDS = {
     "rrf-search": {
         "intro": lambda a: f"RRF Searching For: {a.query}....",
         "action": lambda a: exec_rrf_search(
-            query=a.query,
-            limit=a.limit,
-            k=a.k,
+            query=a.query, limit=a.limit, k=a.k, enahnce_method=a.enhance
         ),
         "format": lambda results: "\n\n".join(
             f"{i + 1}. {r.movie['title']}\n"

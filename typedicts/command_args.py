@@ -7,4 +7,5 @@ class CLIarg(NamedTuple):
     help: str
     is_optional: bool
     default: Any
+    choices: Optional[list] = None
     nargs: Optional[str] = None
