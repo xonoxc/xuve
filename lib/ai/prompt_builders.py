@@ -9,6 +9,10 @@ def build_prompt(query: str, method: EnhanceMethod) -> str:
             )
         case EnhanceMethod.REWRITE:
             return build_query_rewite_prompt(query)
+        case EnhanceMethod.EXPAND:
+            return build_expand_propmpt(
+                query,
+            )
 
 
 def build_spelling_prompt(query: str) -> str:
@@ -41,3 +45,20 @@ def build_query_rewite_prompt(query: str) -> str:
            - "scary movie with bear from few years ago" -> "bear horror movie 2015-2020"
 
            Rewritten query:"""
+
+
+def build_expand_propmpt(query: str) -> str:
+    return f"""Expand this movie search query with related terms.
+
+        Add synonyms and related concepts that might appear in movie descriptions.
+        Keep expansions relevant and focused.
+        This will be appended to the original query.
+
+        Examples:
+
+        - "scary bear movie" -> "scary horror grizzly bear movie terrifying film"
+        - "action movie with bear" -> "action thriller bear chase fight adventure"
+        - "comedy with bear" -> "comedy funny bear humor lighthearted"
+
+        Query: "{query}"
+        """
