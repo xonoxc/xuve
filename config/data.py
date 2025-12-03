@@ -100,3 +100,7 @@ RRF_K = 60  # constant for Reciprocal Rank Fusion
 SYSTEM_PROMPT = (
     "why is internet such a great place to learn about RAG? Use one paragraph maximum."
 )
+
+
+# used cross enoder model
+CROSS_ENCODER_MODEL = "cross-encoder/ms-marco-TinyBERT-L2-v2"

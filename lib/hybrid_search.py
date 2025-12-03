@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Tuple
 
-from config.data import ALPHA
+from config.data import ALPHA, CROSS_ENCODER_MODEL
 from lib.ai.action import enhance_query, generate_resp
 from lib.ai.prompt_builders import (
     build_batch_doc_rating_prompt,
@@ -22,6 +22,8 @@ from lib.data_loaders import load_movie_data
 from utils.parse_id import parse_id_list
 from utils.safe_float import convert_to_float
 from .keyword_search import InvertedIndex
+
+from sentence_transformers import CrossEncoder
 
 
 # i know this is unrelated to the code but
@@ -293,6 +295,28 @@ def rerank_results(
             )
 
             reranked_items = [(doc_id, None) for doc_id in id_list]
+
+        case RerankMethod.CROSS_ENCODER:
+            pairs = [
+                [
+                    stripped_query,
+                    f"{doc.movie.get('title', '')} - {doc.movie.get('document', '')}",
+                ]
+                for doc in results
+            ]
+
+            cross_ecoder = CrossEncoder(model_name_or_path=CROSS_ENCODER_MODEL)
+
+            scores = cross_ecoder.predict(sentences=pairs)
+
+            reranked_items = [
+                (doc.id, float(score))
+                for doc, score in zip(
+                    results,
+                    scores,
+                )
+            ]
+            reranked_items.sort(key=lambda x: x[1], reverse=True)
 
     return [result_map[doc_id] for doc_id, _ in reranked_items if doc_id in result_map]
 
