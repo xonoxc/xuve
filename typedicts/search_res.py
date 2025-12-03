@@ -51,3 +51,9 @@ class SemanticChunkSearchRes:
     document: str
     score: float
     metadata: ChunkMetadata
+
+
+@dataclass
+class RerankedRRFSearchResult:
+    doc: Movie
+    reranked_score: float

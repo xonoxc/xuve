@@ -1,15 +1,23 @@
 from typing import Dict, List, Optional, Tuple
 
 from config.data import ALPHA
-from lib.ai.action import enhance_query
+from lib.ai.action import enhance_query, generate_resp
+from lib.ai.prompt_builders import build_doc_rating_prompt
 from lib.chunked_semantic_search import ChunkedSemanticSearch
 from lib.enums.enahnce_methods import EnhanceMethod
+from lib.enums.rerank_methods import RerankMethod
 from typedicts.movies import Movie
 from typedicts.rrf_search import DocumentRanks
-from typedicts.search_res import HybridScores, RRFSearchResult, WeightedSearchResult
+from typedicts.search_res import (
+    HybridScores,
+    RRFSearchResult,
+    RerankedRRFSearchResult,
+    WeightedSearchResult,
+)
 
 
 from lib.data_loaders import load_movie_data
+from utils.safe_float import convert_to_float
 from .keyword_search import InvertedIndex
 
 
@@ -217,15 +225,58 @@ def exec_rrf_search(
     limit: int = 5,
     k: int = 60,
     enahnce_method: EnhanceMethod | None = None,
+    rerank_method: RerankMethod | None = None,
 ) -> List[RRFSearchResult]:
     hybrid_search_instance = HybridSearch()
 
-    enahanced_query = enhance_query(query, method=enahnce_method)
-    return hybrid_search_instance.rrf_search(
+    enahanced_query = enhance_query(
+        query,
+        method=enahnce_method,
+    )
+
+    search_limit = 5 * limit if rerank_method else limit
+
+    search_res = hybrid_search_instance.rrf_search(
         enahanced_query,
         k,
-        limit,
+        limit=search_limit,
     )
+
+    if rerank_method is None:
+        return search_res
+
+    return rerank_results(query, results=search_res)[:limit]
+
+
+def rerank_results(
+    query: str,
+    results: List[RRFSearchResult],
+) -> List[RRFSearchResult]:
+    stripped_query = query.strip()
+
+    result_map = {doc.id: doc for doc in results}
+
+    reranked_items = []
+
+    for doc in results:
+        resp = generate_resp(
+            build_doc_rating_prompt(query=stripped_query, doc=doc),
+            delay=4,
+        )
+
+        reranked_items.append(
+            (
+                doc.id,
+                convert_to_float(
+                    value=resp.text.strip() if (resp and resp.text) else "",
+                    fallback=0.0,
+                ),
+            )
+        )
+
+    reranked_items.sort(key=lambda x: x.reranked_score, reverse=True)
+
+    return [result_map[doc_id] for doc_id, _ in reranked_items]
 
 
 def exec_weighted_search(

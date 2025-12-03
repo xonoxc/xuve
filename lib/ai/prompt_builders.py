@@ -1,4 +1,5 @@
 from lib.enums.enahnce_methods import EnhanceMethod
+from typedicts.search_res import RRFSearchResult
 
 
 def build_prompt(query: str, method: EnhanceMethod) -> str:
@@ -62,3 +63,20 @@ def build_expand_propmpt(query: str) -> str:
 
         Query: "{query}"
         """
+
+
+def build_doc_rating_prompt(query: str, doc: RRFSearchResult) -> str:
+    return f"""Rate how well this movie matches the search query.
+
+        Query: "{query}"
+        Movie: {doc.movie.get("title", "")} - {doc.movie or ""}
+
+        Consider:
+        - Direct relevance to query
+        - User intent (what they're looking for)
+        - Content appropriateness
+
+        Rate 0-10 (10 = perfect match).
+        Give me ONLY the number in your response, no other text or explanation.
+
+        Score:"""
