@@ -414,9 +414,9 @@ def setup_hybrid_search_parser(
             CLIarg(
                 name="--rerank-method",
                 type=str,
-                choices=["spell", "rewrite", "expand"],
+                choices=["individual", "batch"],
                 is_optional=False,
-                help="Query enhancement method",
+                help="Query rerank  method",
                 default=None,
             ),
         ],

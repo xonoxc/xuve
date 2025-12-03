@@ -1,3 +1,4 @@
+from typing import List
 from lib.enums.enahnce_methods import EnhanceMethod
 from typedicts.search_res import RRFSearchResult
 
@@ -65,18 +66,38 @@ def build_expand_propmpt(query: str) -> str:
         """
 
 
-def build_doc_rating_prompt(query: str, doc: RRFSearchResult) -> str:
+def build_individual_doc_rating_prompt(
+    query: str,
+    doc: RRFSearchResult,
+) -> str:
     return f"""Rate how well this movie matches the search query.
 
-        Query: "{query}"
-        Movie: {doc.movie.get("title", "")} - {doc.movie or ""}
+            Query: "{query}"
+            Movie: {doc.movie.get("title", "")} - {doc.movie or ""}
 
-        Consider:
-        - Direct relevance to query
-        - User intent (what they're looking for)
-        - Content appropriateness
+            Consider:
+            - Direct relevance to query
+            - User intent (what they're looking for)
+            - Content appropriateness
 
-        Rate 0-10 (10 = perfect match).
-        Give me ONLY the number in your response, no other text or explanation.
+            Rate 0-10 (10 = perfect match).
+            Give me ONLY the number in your response, no other text or explanation.
 
-        Score:"""
+            Score:"""
+
+
+def build_batch_doc_rating_prompt(
+    query: str,
+    docs: List[RRFSearchResult],
+) -> str:
+    return f"""Rank these movies by relevance to the search query.
+
+            Query: "{query}"
+
+            Movies:
+            {str(docs)}
+
+            Return ONLY the IDs in order of relevance (best match first). Return a valid JSON list, nothing else. For example:
+
+            [75, 12, 34, 2, 1]
+            """

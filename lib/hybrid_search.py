@@ -2,7 +2,10 @@ from typing import Dict, List, Optional, Tuple
 
 from config.data import ALPHA
 from lib.ai.action import enhance_query, generate_resp
-from lib.ai.prompt_builders import build_doc_rating_prompt
+from lib.ai.prompt_builders import (
+    build_batch_doc_rating_prompt,
+    build_individual_doc_rating_prompt,
+)
 from lib.chunked_semantic_search import ChunkedSemanticSearch
 from lib.enums.enahnce_methods import EnhanceMethod
 from lib.enums.rerank_methods import RerankMethod
@@ -11,12 +14,12 @@ from typedicts.rrf_search import DocumentRanks
 from typedicts.search_res import (
     HybridScores,
     RRFSearchResult,
-    RerankedRRFSearchResult,
     WeightedSearchResult,
 )
 
 
 from lib.data_loaders import load_movie_data
+from utils.parse_id import parse_id_list
 from utils.safe_float import convert_to_float
 from .keyword_search import InvertedIndex
 
@@ -245,12 +248,13 @@ def exec_rrf_search(
     if rerank_method is None:
         return search_res
 
-    return rerank_results(query, results=search_res)[:limit]
+    return rerank_results(query, results=search_res, method=rerank_method)[:limit]
 
 
 def rerank_results(
     query: str,
     results: List[RRFSearchResult],
+    method: RerankMethod,
 ) -> List[RRFSearchResult]:
     stripped_query = query.strip()
 
@@ -258,25 +262,40 @@ def rerank_results(
 
     reranked_items = []
 
-    for doc in results:
-        resp = generate_resp(
-            build_doc_rating_prompt(query=stripped_query, doc=doc),
-            delay=4,
-        )
+    match RerankMethod(method):
+        case RerankMethod.INDIVIDUAL:
+            for doc in results:
+                resp = generate_resp(
+                    build_individual_doc_rating_prompt(query=stripped_query, doc=doc),
+                    delay=4,
+                )
 
-        reranked_items.append(
-            (
-                doc.id,
-                convert_to_float(
-                    value=resp.text.strip() if (resp and resp.text) else "",
-                    fallback=0.0,
-                ),
+                reranked_items.append(
+                    (
+                        doc.id,
+                        convert_to_float(
+                            value=resp.text.strip() if (resp and resp.text) else "",
+                            fallback=0.0,
+                        ),
+                    )
+                )
+
+            reranked_items.sort(key=lambda x: x[0], reverse=True)
+
+        case RerankMethod.BATCH:
+            resp = generate_resp(
+                build_batch_doc_rating_prompt(query=stripped_query, docs=results),
+                delay=4,
             )
-        )
 
-    reranked_items.sort(key=lambda x: x[0], reverse=True)
+            print("list returned by llm", resp.text)
+            id_list = parse_id_list(
+                resp.text.strip() if (resp and resp.text) else "",
+            )
 
-    return [result_map[doc_id] for doc_id, _ in reranked_items]
+            reranked_items = [(doc_id, None) for doc_id in id_list]
+
+    return [result_map.get(doc_id) for doc_id, _ in reranked_items]
 
 
 def exec_weighted_search(
