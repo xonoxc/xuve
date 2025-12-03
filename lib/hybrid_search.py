@@ -280,7 +280,7 @@ def rerank_results(
                     )
                 )
 
-            reranked_items.sort(key=lambda x: x[0], reverse=True)
+            reranked_items.sort(key=lambda x: x[1], reverse=True)
 
         case RerankMethod.BATCH:
             resp = generate_resp(
@@ -288,14 +288,13 @@ def rerank_results(
                 delay=4,
             )
 
-            print("list returned by llm", resp.text)
             id_list = parse_id_list(
                 resp.text.strip() if (resp and resp.text) else "",
             )
 
             reranked_items = [(doc_id, None) for doc_id in id_list]
 
-    return [result_map.get(doc_id) for doc_id, _ in reranked_items]
+    return [result_map[doc_id] for doc_id, _ in reranked_items if doc_id in result_map]
 
 
 def exec_weighted_search(
