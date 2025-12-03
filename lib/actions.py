@@ -185,6 +185,7 @@ COMMANDS = {
             limit=a.limit,
             k=a.k,
             enahnce_method=a.enhance,
+            rerank_method=a.rerank_method,
         ),
         "format": lambda results: "\n\n".join(
             f"{i + 1}. {r.movie['title']}\n"

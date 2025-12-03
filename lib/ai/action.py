@@ -21,6 +21,7 @@ def generate_resp(
             print(e.message)
             # just to avoid hitting rate limit
             if delay:
+                print(f"retrying after {delay} seconds...")
                 time.sleep(delay)
                 return generate_resp(
                     prompt,

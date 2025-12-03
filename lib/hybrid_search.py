@@ -274,7 +274,7 @@ def rerank_results(
             )
         )
 
-    reranked_items.sort(key=lambda x: x.reranked_score, reverse=True)
+    reranked_items.sort(key=lambda x: x[0], reverse=True)
 
     return [result_map[doc_id] for doc_id, _ in reranked_items]
 
